@@ -1,0 +1,63 @@
+After changing BIOS to performance and setting VRAM -> auto
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 32768 MiB):
+  Device 0: AMD Radeon 780M Graphics, gfx1103 (0x1103), VMM: no, Wave Size: 32, VRAM: 32768 MiB
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           pp512 |        359.29 ± 3.68 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           tg256 |         17.18 ± 0.10 |
+
+build: e489a5ca0 (8784)
+The GPU also now runs cooler! ALso set GNOME settings to performance.
+stoflom@fedora:~/Workspace/llama$ ./benchmark.sh -fa 1
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 31535 MiB):
+  Device 0: AMD Radeon 780M Graphics, gfx1103 (0x1103), VMM: no, Wave Size: 32, VRAM: 31535 MiB
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           pp512 |        347.07 ± 5.46 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           tg256 |         17.96 ± 0.02 |
+
+
+
+Let us try Vulkan:
+
+build: 1cbc846eb (8974)
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | Vulkan     |  99 |  1 |           pp512 |        328.85 ± 1.70 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | Vulkan     |  99 |  1 |           tg256 |         22.86 ± 0.08 |
+
+
+With wave32:
+build: 1cbc846eb (8974)
+stoflom@fedora:~/Workspace/llama$ RADV_PERFTEST=wave32 ./benchmark.sh -fa 1
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 780M Graphics (RADV PHOENIX) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | Vulkan     |  99 |  1 |           pp512 |        322.58 ± 3.08 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | Vulkan     |  99 |  1 |           tg256 |         22.40 ± 0.15 |
+
+
+Also tried ZenDNN which only runs on the CPU's on my H/W.
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+| model                          |       size |     params | backend    | threads | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | ------: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ZenDNN     |       8 |  1 |           pp512 |        105.04 ± 0.25 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ZenDNN     |       8 |  1 |           tg256 |         16.56 ± 0.02 |
+
+build: aab68217b (8994)
+
+Under Vulkan gemma4 seems FINE
+CMD: llama.cpp/build/bin/llama-bench -hf ggml-org/gemma-4-26b-a4b-it-GGUF:Q4_K_M -p 512 -n 256 -fa 1
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 780M Graphics (RADV PHOENIX) (radv) | uma: 1 | fp16: 1 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| gemma4 26B.A4B Q4_K - Medium   |  15.63 GiB |    25.23 B | Vulkan     |  99 |  1 |           pp512 |        372.96 ± 1.33 |
+| gemma4 26B.A4B Q4_K - Medium   |  15.63 GiB |    25.23 B | Vulkan     |  99 |  1 |           tg256 |         25.69 ± 0.07 |
+
+build: aab68217b (8994)

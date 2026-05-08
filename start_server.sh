@@ -1,0 +1,327 @@
+#!/bin/bash
+
+# Binding server to host (override with --host <hostname> ):
+HOST="0.0.0.0"
+
+# ==============================================================================
+# Script: start_server.sh
+# Purpose: Automated launcher for llama.cpp server with model selection,
+#          context management, and default configuration handling.
+# Dependencies: Requires a built 'llama-server' binary, jq, and model files
+#              defined in models.json.
+# Usage: ./start_server.sh [OPTIONS] [EXTRA_FLAGS]
+# ==============================================================================
+
+# Enable strict error handling:
+# -e: Exit immediately if a command exits with a non-zero status.
+# -u: Treat unset variables as an error and exit.
+# -o pipefail: The return value of a pipeline is the status of the last command
+#              to exit with a non-zero status, or zero if no command exits with a non-zero status.
+set -euo pipefail
+
+# -----------------------------------------------------------------------------
+# Configuration & Path Management
+# -----------------------------------------------------------------------------
+
+# Determine the directory where this script resides.
+# Using 'cd' and 'pwd' ensures we get the absolute path regardless of where
+# the script is called from.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+# Set directory variables with fallback defaults using parameter expansion (: ${VAR:=default})
+# This allows users to override these via environment variables if needed.
+: ${MAIN_DIR:=$SCRIPT_DIR}           # Root directory of the project
+: ${SOURCE_DIR:=$MAIN_DIR/llama.cpp} # Directory containing the llama.cpp source/build
+
+CONFIG_FILE="$SCRIPT_DIR/models.json"
+
+CONFIG_CONTEXT=""
+CONFIG_OPTIONS=()
+
+# -----------------------------------------------------------------------------
+# Load Model Configuration from JSON
+# -----------------------------------------------------------------------------
+load_model_config() {
+	local profile="$1"
+	MODEL_PROFILE="$profile"
+
+	local hf_model
+
+	hf_model=$(jq -r ".models[\"$profile\"].model // empty" "$CONFIG_FILE")
+
+	if [ -z "$hf_model" ]; then
+		echo "Error: Profile '$profile' not found in $CONFIG_FILE or has no 'model' field"
+		exit 1
+	fi
+
+	HF_MODEL="${hf_model}"
+
+	CONFIG_CONTEXT=$(jq -r ".models[\"$profile\"].context // empty" "$CONFIG_FILE")
+
+	if [ -z "$CONFIG_CONTEXT" ]; then
+		CONFIG_CONTEXT=32768
+	fi
+
+	CONFIG_OPTIONS=($(jq -r ".models[\"$profile\"].options[]?" "$CONFIG_FILE"))
+}
+
+# -----------------------------------------------------------------------------
+# Argument Parsing
+# -----------------------------------------------------------------------------
+USE_MENU=false
+LIST_MODELS=false
+PRINT_ONLY=false
+MODEL_PROFILE=""
+extra_flags=()
+
+# Parse command-line arguments manually to support variable-length arguments
+# and store unknown flags for later passing to llama-server.
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	# -m or --model: Use a named profile from models.json
+	-m | --model)
+		MODEL_PROFILE="$2"
+		shift 2
+		;;
+	# -c or --context: Override the default context size.
+	-c | --context)
+		CONTEXT_SIZE="$2"
+		shift 2
+		;;
+	# -s or --select: Interactive model profile selection menu. Shows all profiles
+	#                 with default marked. Enter loads default, or select by number.
+	-s | --select)
+		USE_MENU=true
+		shift 1
+		;;
+	# -l or --list: Print available model profiles from models.json and exit.
+	-l | --list)
+		LIST_MODELS=true
+		shift 1
+		;;
+	# -p or --print: Print the command that would be executed without running it.
+	-p | --print)
+		PRINT_ONLY=true
+		shift 1
+		;;
+	# -f or --force-download: Force download from HuggingFace even if local file exists
+	-f | --force-download)
+		echo "Note: -f flag is deprecated, download is always attempted"
+		shift 1
+		;;
+	# -h or --help: Display usage information.
+	-h | --help)
+		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [extra_flags...]"
+		echo ""
+		echo "Options:"
+		echo "  -m, --model <profile> Use model profile from models.json"
+		echo "  -c, --context <num>   Override context size from profile"
+		echo "  -s, --select          Interactive model profile selection menu"
+		echo "  -l, --list            List available model profiles from models.json"
+		echo "  -p, --print           Print the command without executing it"
+		echo "  -h, --help            Display this help message"
+		echo "  extra_flags           Any additional flags to pass to llama-server e.g. --tools all"
+		echo ""
+		echo "Model profile fields (in models.json):"
+		echo "  model   - HuggingFace model ID (e.g. org/repo:filename)"
+		echo "  context - Context window size"
+		echo "  options - Additional llama-server flags"
+		echo ""
+		echo "Defaults: If no options provided, loads the default profile from models.json."
+		exit 0
+		;;
+	# Catch-all: Any unrecognized flag is stored for the final execution.
+	*)
+		extra_flags+=("$1")
+		shift 1
+		;;
+	esac
+done
+
+# -----------------------------------------------------------------------------
+# Model Discovery from models.json
+# -----------------------------------------------------------------------------
+get_model_profiles() {
+	jq -r '.models | keys[]' "$CONFIG_FILE" 2>/dev/null
+}
+
+get_model_info() {
+	local profile="$1"
+	local key="$2"
+	jq -r ".models[\"$profile\"][\"$key\"] // empty" "$CONFIG_FILE"
+}
+
+get_default_profile() {
+	jq -r '.models | to_entries[] | select(.value.default == true) | .key' "$CONFIG_FILE" 2>/dev/null
+}
+
+validate_config() {
+	echo "Validating $CONFIG_FILE..."
+
+	# 1. Check if valid JSON
+	if ! jq '.' "$CONFIG_FILE" > /dev/null 2>&1; then
+		echo "Error: $CONFIG_FILE is not a valid JSON file."
+		exit 1
+	fi
+
+	# 2. Check if 'models' object exists and is not empty
+	local models_count
+	models_count=$(jq '.models | length' "$CONFIG_FILE" 2>/dev/null || echo 0)
+	if [ "$models_count" -eq 0 ]; then
+		echo "Error: No models found in $CONFIG_FILE (the 'models' object is empty or missing)."
+		exit 1
+	fi
+
+	# 3. Check if every profile has a 'model' field
+	local missing_model
+	missing_model=$(jq -r '.models | to_entries | .[] | select(.value.model == null or .value.model == "") | .key' "$CONFIG_FILE")
+	if [ -n "$missing_model" ]; then
+		echo "Error: The following profiles are missing a 'model' field: $missing_model"
+		exit 1
+	fi
+
+	# 4. Check if there is exactly one default profile
+	local default_count
+	default_count=$(jq '.models | to_entries | map(select(.value.default == true)) | length' "$CONFIG_FILE")
+	if [ "$default_count" -ne 1 ]; then
+		echo "Error: Expected exactly 1 default profile, but found $default_count in $CONFIG_FILE"
+		exit 1
+	fi
+
+	# 5. Check if 'context' is a number (if present)
+	local invalid_context
+	invalid_context=$(jq -r '.models | to_entries | .[] | select(.value.context != null and (.value.context | type != "number")) | .key' "$CONFIG_FILE")
+	if [ -n "$invalid_context" ]; then
+		echo "Error: The following profiles have an invalid 'context' (must be a number): $invalid_context"
+		exit 1
+	fi
+
+	# 6. Check if 'options' is an array (if present)
+	local invalid_options
+	invalid_options=$(jq -r '.models | to_entries | .[] | select(.value.options != null and (.value.options | type != "array")) | .key' "$CONFIG_FILE")
+	if [ -n "$invalid_options" ]; then
+		echo "Error: The following profiles have an invalid 'options' (must be an array): $invalid_options"
+		exit 1
+	fi
+
+	echo "Configuration validation passed."
+}
+
+if ! command -v jq &>/dev/null; then
+	echo "Error: jq is required but not installed."
+	exit 1
+fi
+
+if [ ! -f "$CONFIG_FILE" ]; then
+	echo "Error: Config file not found at $CONFIG_FILE"
+	exit 1
+fi
+
+validate_config
+
+MODEL_PROFILES=($(get_model_profiles))
+DEFAULT_PROFILE=$(get_default_profile)
+
+# -----------------------------------------------------------------------------
+# Handle List Mode (no server required)
+# -----------------------------------------------------------------------------
+if [ "$LIST_MODELS" = true ]; then
+	echo "Available models in $CONFIG_FILE:"
+	echo "--------------------------------"
+	for profile in "${MODEL_PROFILES[@]}"; do
+		model=$(get_model_info "$profile" "model")
+		context=$(get_model_info "$profile" "context")
+		options=$(jq -r ".models[\"$profile\"].options | if . then map(\" \" + .) | join(\"\") else \"\" end" "$CONFIG_FILE")
+		is_default=$(get_model_info "$profile" "default")
+		default_marker=""
+		if [ "$is_default" = "true" ]; then
+			default_marker=" (default)"
+		fi
+		echo "[$profile]$default_marker"
+		echo "  Model:     $model"
+		echo "  Context:   ${context:-32768}"
+		echo "  Options:   ${options:- none}"
+		echo ""
+	done
+	exit 0
+fi
+
+# -----------------------------------------------------------------------------
+# Environment Checks & Validation
+# -----------------------------------------------------------------------------
+
+cd "$SOURCE_DIR"
+
+if [ ! -x "build/bin/llama-server" ]; then
+	echo "Error: llama-server binary not found or not executable"
+	echo "Please ensure it's built in $SOURCE_DIR/build"
+	echo "Run  build_lamacpp.sh  to build."
+	exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# Model Selection Logic
+# -----------------------------------------------------------------------------
+# Determine which model profile to load:
+# 1. -m flag: Use specified profile
+# 2. -s flag: Interactive menu (default marked, Enter loads default)
+# 3. Otherwise: Use the default profile from models.json
+if [ -n "$MODEL_PROFILE" ]; then
+	load_model_config "$MODEL_PROFILE"
+elif [ "$USE_MENU" = true ]; then
+	echo "Selecting model profile..."
+	echo "--------------------------------"
+
+	for i in "${!MODEL_PROFILES[@]}"; do
+		profile="${MODEL_PROFILES[$i]}"
+		if [ "$profile" = "$DEFAULT_PROFILE" ]; then
+			echo "$((i + 1))) $profile (default)"
+		else
+			echo "$((i + 1))) $profile"
+		fi
+	done
+
+	PS3="Select a profile (1-${#MODEL_PROFILES[@]}) [default: $DEFAULT_PROFILE]: "
+	read -r selection
+
+	if [ -z "$selection" ]; then
+		load_model_config "$DEFAULT_PROFILE"
+	elif [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#MODEL_PROFILES[@]}" ]; then
+		profile="${MODEL_PROFILES[$((selection - 1))]}"
+		load_model_config "$profile"
+	else
+		echo "Invalid selection, loading default: $DEFAULT_PROFILE"
+		load_model_config "$DEFAULT_PROFILE"
+	fi
+else
+	load_model_config "$DEFAULT_PROFILE"
+fi
+
+# -----------------------------------------------------------------------------
+# Server Execution
+# -----------------------------------------------------------------------------
+CONTEXT_SIZE="${CONTEXT_SIZE:-$CONFIG_CONTEXT}"
+START_OPTIONS=("${CONFIG_OPTIONS[@]}")
+
+echo "Starting server..."
+echo "Model:        $HF_MODEL"
+echo "Context Size: $CONTEXT_SIZE"
+echo "Options:      ${START_OPTIONS[*]:-none}"
+if [ ${#extra_flags[@]} -gt 0 ]; then
+	echo "Extra Flags:  ${extra_flags[*]}"
+fi
+echo "--------------------------------"
+
+CMD=(build/bin/llama-server
+	--host "$HOST"
+	-hf "$HF_MODEL"
+	-c "$CONTEXT_SIZE"
+	"${START_OPTIONS[@]}"
+	"${extra_flags[@]}")
+
+if [ "$PRINT_ONLY" = true ]; then
+	echo "Command: ${CMD[*]}"
+	exit 0
+fi
+
+exec "${CMD[@]}"

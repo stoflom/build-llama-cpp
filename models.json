@@ -1,0 +1,35 @@
+{
+  "models": {
+    "llama33": {
+      "model": "bartowski/allura-forge_Llama-3.3-8B-Instruct-GGUF:Q4_K_M",
+      "context": 8192,
+      "options": ["-fa on"]
+    },
+    "qwen35": {
+      "default": true,
+      "model": "unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL",
+      "context": 65536,
+      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all" ]
+    },
+    "qwen36-35B": {
+      "model": "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M",
+      "context": 65536,
+      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all"]
+    },
+    "qwen36-27B": {
+      "model": "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL",
+      "context": 65536,
+      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all"]
+    },
+    "gemma4":{
+      "model":"unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
+      "context": 65536,
+      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all"]
+    },
+    "LightOn": {
+      "model": "staghado/LightOnOCR-2-1B-Q8_0-GGUF",
+      "context": 16384,
+      "options": ["-fa on", "--temp 0.2", "--top-k 0", "--top-p 0.9"]
+    }
+  }
+}

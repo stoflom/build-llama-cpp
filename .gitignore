@@ -1,0 +1,6 @@
+llama.cpp/
+*.txt
+__pycache__/
+*.old
+scratch/
+.github
