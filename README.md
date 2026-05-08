@@ -1,6 +1,6 @@
-# Llama.cpp Setup
+#  Llama.cpp on Fedora with AMD Hardware
 
-Configuration:
+My Configuration:
 
 - Fedora 44 (latest workstation edition)
 - AMD Ryzen 9 PRO 8945HS
