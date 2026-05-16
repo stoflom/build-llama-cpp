@@ -61,3 +61,12 @@ ggml_vulkan: 0 = AMD Radeon 780M Graphics (RADV PHOENIX) (radv) | uma: 1 | fp16:
 | gemma4 26B.A4B Q4_K - Medium   |  15.63 GiB |    25.23 B | Vulkan     |  99 |  1 |           tg256 |         25.69 ± 0.07 |
 
 build: aab68217b (8994)
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL -p 512 -n 256 -fa 1
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 31535 MiB):
+  Device 0: AMD Radeon 780M Graphics, gfx1103 (0x1103), VMM: no, Wave Size: 32, VRAM: 31535 MiB
+| model                          |       size |     params | backend    | ngl | fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           pp512 |        347.26 ± 3.38 |
+| qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           tg256 |         17.97 ± 0.02 |
+
+build: 255582687 (9180)

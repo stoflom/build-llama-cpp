@@ -32,28 +32,24 @@ Arguments:
 Options:
   -h, --help              Show this help message and exit
   -o, --output DIR        Set the build output directory
-                          (default: llama.cpp/build)
+                          (default: ./llama.cpp/build)
 
 Examples:
-  # Build with Vulkan (default)
+  # Build with Vulkan, output to ./llama.cpp/build
   ./build_lamacpp.sh
 
   # Build with HIP/ROCm
   ./build_lamacpp.sh hip
 
-  # Custom output directory
-  ./build_lamacpp.sh -o /custom/path llama.cpp/build
-
-Dependencies:
-  - Git (for cloning/updating source)
-  - CMake (version 3.14+)
-  - GCC or Clang compiler
-  - ROCm/HIP toolkit (for HIP backend)
-  - Vulkan SDK (for Vulkan backend)
+  # Output in ./llama.cpp/build-vulkan
+  ./build_lamacpp.sh -o build-vulkan
 
 Source Code:
-  Ensure llama.cpp is cloned (should be in a subdirectory to the script):
+  Ensure llama.cpp is cloned (should be in ./llama.cpp):
   git clone https://github.com/ggerganov/llama.cpp.git
+
+Dependencies:
+  See ./llama.cpp/README.md
 EOF
 }
 
