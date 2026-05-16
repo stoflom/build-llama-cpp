@@ -4,18 +4,90 @@
 # Script: build_lamacpp.sh
 # Purpose: Build llama.cpp with HIP or Vulkan support.
 # Dependencies: Requires ROCm/HIP or Vulkan platform and internet access for git.
-# Usage: ./build_lamacpp.sh [hip|vulkan]
+# Usage: ./build_lamacpp.sh [OPTIONS] [hip|vulkan]
+# Options:
+#   -h, --help    Show this help message and exit
+#   -o, --output  Set output directory (default: llama.cpp/build)
 # ==============================================================================
 
 set -euo pipefail
 
+# Default options
+GPU_BACKEND="vulkan"
+
+# -----------------------------------------------------------------------------
+# Print Help Message
+# -----------------------------------------------------------------------------
+show_help() {
+    cat << 'EOF'
+Usage: build_lamacpp.sh [OPTIONS] [BACKEND]
+
+Build llama.cpp with GPU acceleration support.
+
+Arguments:
+  BACKEND     Build backend to use (default: vulkan)
+               hip      - Build with ROCm/HIP support
+               vulkan   - Build with Vulkan support
+
+Options:
+  -h, --help              Show this help message and exit
+  -o, --output DIR        Set the build output directory
+                          (default: llama.cpp/build)
+
+Examples:
+  # Build with Vulkan (default)
+  ./build_lamacpp.sh
+
+  # Build with HIP/ROCm
+  ./build_lamacpp.sh hip
+
+  # Custom output directory
+  ./build_lamacpp.sh -o /custom/path llama.cpp/build
+
+Dependencies:
+  - Git (for cloning/updating source)
+  - CMake (version 3.14+)
+  - GCC or Clang compiler
+  - ROCm/HIP toolkit (for HIP backend)
+  - Vulkan SDK (for Vulkan backend)
+
+Source Code:
+  Ensure llama.cpp is cloned (should be in a subdirectory to the script):
+  git clone https://github.com/ggerganov/llama.cpp.git
+EOF
+}
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+
+        -o|--output)
+            BUILD_DIR="$2"
+            shift 2
+            ;;
+        hip|vulkan)
+            GPU_BACKEND="$1"
+            shift
+            ;;
+        *)
+            echo "Error: Unknown option '$1'" >&2
+            echo "Use --help for usage information." >&2
+            exit 1
+            ;;
+    esac
+done
+
+# Set main directory and source directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 MAIN_DIR="$SCRIPT_DIR"
 SOURCE_DIR="${MAIN_DIR}/llama.cpp"
-BUILD_DIR="${SOURCE_DIR}/build"
 
-# Default backend
-GPU_BACKEND="${1:-vulkan}"
+# Default build directory if not specified
+BUILD_DIR="${BUILD_DIR:-${MAIN_DIR}/llama.cpp/build}"
 
 # CMake options based on backend
 if [[ "$GPU_BACKEND" == "vulkan" ]]; then
@@ -33,9 +105,6 @@ elif [[ "$GPU_BACKEND" == "hip" ]]; then
 		-DGGML_HIP_FLASH_ATTN=ON
 	)
 	echo "Configuring build for HIP/ROCm..."
-else
-	echo "Error: Invalid backend '$GPU_BACKEND'. Use 'hip' or 'vulkan'."
-	exit 1
 fi
 
 # -----------------------------------------------------------------------------

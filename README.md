@@ -35,8 +35,19 @@ The following scripts are available for use:
 - Python3
 - cmake, git, make (build tools)
 
-**Note:** The `build_lamacpp.sh hip`  script builds llama.cpp with ROCm/HIP support for AMD GPUs, or Vulkan support with `./build_lamacpp.sh vulkan` (default). For NVIDIA GPUs or pre-built binaries, see llama.cpp documentation.
+**Note:** The `build_lamacpp.sh hip` script builds llama.cpp with ROCm/HIP support for AMD GPUs, or Vulkan support with `./build_lamacpp.sh vulkan` (default). For NVIDIA GPUs or pre-built binaries, see llama.cpp documentation.
 
+### Build Script Options
+
+Use `./build_lamacpp.sh -h` or `--help` to view all options:
+
+```
+Usage: build_lamacpp.sh [OPTIONS] [BACKEND]
+
+Options:
+  -h, --help              Show this help message and exit
+  -o, --output DIR        Set custom build output directory under llama.cpp subdirectory
+```
 ## Dependencies
 
 ### HIP / ROCm (AMD GPU, default)
@@ -73,6 +84,9 @@ git clone https://github.com/ggerganov/llama.cpp.git
 
 # Or build for Vulkan (default)
 ./build_lamacpp.sh vulkan
+
+# Custom build directory
+./build_lamacpp.sh -o build-vulkan   (output in ./llama.cpp/build-vulkan)
 ```
 
 Vulkan performance is similar (320/22tps compared to 340/17tps) but maybe more stable.
