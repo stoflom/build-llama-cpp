@@ -134,6 +134,7 @@ You can use the following options for `start_server.sh`:
 - `-s, --select` - Interactive model selection menu (Enter loads default)
 - `-l, --list` - List available models configured in `models.json`
 - `-p, --print` - Prints the command that will be executing without actually executing it
+- `-f, --force-download` - Force download from HuggingFace even if local file exists
 - `-h, --help` - Display help with all these options
 
 any extra flags at the end, e.g. `-ngl 40` will be passed on to llama-server.

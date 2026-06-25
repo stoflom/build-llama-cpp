@@ -1,10 +1,5 @@
 {
   "models": {
-    "llama33": {
-      "model": "bartowski/allura-forge_Llama-3.3-8B-Instruct-GGUF:Q4_K_M",
-      "context": 8192,
-      "options": ["-fa on"]
-    },
     "qwen36": {
       "default": true,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
