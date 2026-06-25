@@ -117,7 +117,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  -m, --model <profile>     Model profile key from models.json (e.g. qwen36, gemma4, LightOn)"
 		echo "  -c, --context <num>       Override context size from profile"
 		echo "  -s, --select              Interactive model profile selection menu"
-		echo "  -l, --list                List available model profiles from models.json"
+		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -f, --force-download      Force download from HuggingFace"
 		echo "  -h, --help                Display this help message"
@@ -125,12 +125,13 @@ while [[ $# -gt 0 ]]; do
 		echo ""
 		echo "Model profile fields (in models.json):"
 		echo "  name    - Profile key used with -m flag (e.g. qwen36, gemma4, LightOn)"
-		echo "  model   - HuggingFace model ID or local GGUF path"
+		echo "  model   - HuggingFace model ID, in local cache after first use"
 		echo "  context - Context window size"
 		echo "  options - Additional llama-server flags (array)"
 		echo "  default - Mark this profile as the default (boolean)"
 		echo ""
 		echo "Defaults: If no options provided, loads the default profile from models.json."
+        echo "To list the models in local cache: hf cache ls"
 		exit 0
 		;;
 	# Catch-all: Any unrecognized flag is stored for the final execution.

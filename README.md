@@ -108,7 +108,11 @@ The `models.json` config file defines named profiles with their own parameters. 
 Models are configured via the `model` field in `models.json` using HuggingFace format `org/repo:quant`. The local hf cache is checked first, falling back to download if not found.
 
 ### Local hf cache
-If the model is not in the local hf cache it will be downloaded or updated. The local cache is managed with the `hf` (huggingface-hub) tool from Huggingface, see (https://huggingface.co/docs/huggingface_hub/en/guides/cli) and `hf cache --help`.
+If the model is not in the local hf cache it will be downloaded or updated. The local cache is managed with the `hf` (huggingface-hub) tool from Huggingface, see (https://huggingface.co/docs/huggingface_hub/en/guides/cli) and `hf cache --help`. To list contents of cache
+
+```
+hf cache ls --format json | jq .
+```
 
 ## Starting the server
 
@@ -132,7 +136,7 @@ You can use the following options for `start_server.sh`:
 - `-m, --model <profile>` - Use a named profile from `models.json`
 - `-c, --context <num>` - Override context size from `models.json`
 - `-s, --select` - Interactive model selection menu (Enter loads default)
-- `-l, --list` - List available models configured in `models.json`
+- `-l, --list` - Validates `models.json` and lists configured models
 - `-p, --print` - Prints the command that will be executing without actually executing it
 - `-f, --force-download` - Force download from HuggingFace even if local file exists
 - `-h, --help` - Display help with all these options
