@@ -70,3 +70,30 @@ ggml_cuda_init: found 1 ROCm devices (Total VRAM: 31535 MiB):
 | qwen35moe 35B.A3B Q4_K - Medium |  20.70 GiB |    34.66 B | ROCm       |  99 |  1 |           tg256 |         17.97 ± 0.02 |
 
 build: 255582687 (9180)
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M -p 512 -n 256 -fa 1
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | Vulkan     |  -1 |   1 |           pp512 |        377.24 ± 2.35 |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | Vulkan     |  -1 |   1 |           tg256 |         23.70 ± 0.03 |
+
+build: 8c146a836 (9840)
+stoflom@fedora:~/Workspace/llama$ ./benchmark.sh 
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M -p 512 -n 256
+ggml_cuda_init: found 1 ROCm devices (Total VRAM: 31535 MiB):
+  Device 0: AMD Radeon 780M Graphics, gfx1103 (0x1103), VMM: no, Wave Size: 32, VRAM: 31535 MiB
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | ROCm       |  -1 |           pp512 |        344.07 ± 2.71 |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | ROCm       |  -1 |           tg256 |         20.25 ± 0.05 |
+
+build: b820cc8e6 (9856)
+stoflom@fedora:~/Workspace/llama$ ./benchmark.sh 
+CMD: llama.cpp/build/bin/llama-bench -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M -p 512 -n 256
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = AMD Radeon 780M Graphics (RADV PHOENIX) (radv) | uma: 1 | fp16: dot2 | bf16: 0 | warp size: 64 | shared memory: 65536 | int dot: 1 | matrix cores: KHR_coopmat
+| model                          |       size |     params | backend    | ngl |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | Vulkan     |  -1 |           pp512 |       371.77 ± 11.89 |
+| qwen35moe 35B.A3B Q4_K - Medium |  21.10 GiB |    35.51 B | Vulkan     |  -1 |           tg256 |         23.84 ± 0.06 |
+
+build: b820cc8e6 (9856)
