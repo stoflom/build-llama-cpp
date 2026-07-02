@@ -45,8 +45,9 @@ Examples:
   ./build_lamacpp.sh -o build-vulkan
 
 Source Code:
-  Ensure llama.cpp is cloned (should be in ./llama.cpp):
-  git clone https://github.com/ggerganov/llama.cpp.git
+  llama.cpp is cloned automatically if not present in ./llama.cpp.
+  To clone manually instead:
+    git clone https://github.com/ggerganov/llama.cpp.git
 
 Dependencies:
   See ./llama.cpp/README.md
@@ -104,13 +105,14 @@ elif [[ "$GPU_BACKEND" == "hip" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Check Dependencies
+# Clone Source (if not already present)
 # -----------------------------------------------------------------------------
-# Assumes llama.cpp is cloned in a subdirectory:
+# Automatically clones llama.cpp into ./llama.cpp if the directory does not exist.
+# To skip auto-cloning, clone manually first:
 #   git clone https://github.com/ggerganov/llama.cpp.git
 if [ ! -d "$SOURCE_DIR" ]; then
-	echo "Error: Source directory not found at $SOURCE_DIR"
-	exit 1
+	echo "Cloning llama.cpp source into $SOURCE_DIR..."
+	git clone https://github.com/ggerganov/llama.cpp.git
 fi
 
 # -----------------------------------------------------------------------------

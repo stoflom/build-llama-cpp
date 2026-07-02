@@ -29,7 +29,7 @@ The following scripts are available for use:
 
 ## Hardware and Software Requirements
 
-- llama.cpp (built via `build_lamacpp.sh` source cloned from github in subdirectory llama.cpp/)
+- llama.cpp (auto-cloned by `build_lamacpp.sh` into `./llama.cpp`, or clone manually first)
 - jq (for parsing `models.json`)
 - Internet connection (for automatic model downloads from Hugging Face)
 - Python3
@@ -76,9 +76,6 @@ sudo dnf install vulkan-headers vulkan-loader-devel vulkan-tools spirv-tools gls
 ### To build llama.cpp:
 
 ```bash
-# Clone latest llama.cpp (alternatively clone a stable release)
-git clone https://github.com/ggerganov/llama.cpp.git
-
 # Build for AMD ROCm/HIP
 ./build_lamacpp.sh hip
 
@@ -88,6 +85,8 @@ git clone https://github.com/ggerganov/llama.cpp.git
 # Custom build directory
 ./build_lamacpp.sh -o build-vulkan   (output in ./llama.cpp/build-vulkan)
 ```
+The script automatically clones llama.cpp into `./llama.cpp` if it is not already present.
+To use a specific commit or manual clone, run `git clone https://github.com/ggerganov/llama.cpp.git` before building.
 
 Vulkan performance is similar (320/22tps compared to 340/17tps) but maybe more stable.
 
