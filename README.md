@@ -22,10 +22,11 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 - `build_lamacpp.sh` - Build llama.cpp with Vulkan (default) or ROCm/HIP support
 - `start_server.sh` - Start llama-server with model selection from `models.json`
+- `ocr-ai.py` - Perform OCR on PDF documents using a selected model
 
-# Getting Started
+## Getting Started
 
-## Requirements
+### Requirements
 
 - llama.cpp (auto-cloned by `build_lamacpp.sh` into `./llama.cpp`, or clone manually first)
 - jq (for parsing `models.json`)
@@ -34,7 +35,7 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 **Note:** Default backend is Vulkan. Use `./build_lamacpp.sh hip` for AMD ROCm/HIP support. For NVIDIA or pre-built binaries, see llama.cpp documentation.
 
-### Build Script Options
+#### Build Script Options
 
 ```
 Usage: build_lamacpp.sh [OPTIONS] [BACKEND]
@@ -56,9 +57,9 @@ Examples:
   ./build_lamacpp.sh hip              # ROCm/HIP
   ./build_lamacpp.sh -o build-vulkan  # Custom output dir
 ```
-## Dependencies
+### Dependencies
 
-### HIP / ROCm (AMD GPU)
+#### HIP / ROCm (AMD GPU)
 
 ```bash
 sudo dnf install rocm-hip rocm-opencl rocm-runtime rocm-smi rocminfo rocm-devel
@@ -79,13 +80,13 @@ sudo dnf install vulkan-headers vulkan-loader-devel vulkan-tools spirv-tools gls
 ```
 
 - Supports AMD, Intel, and NVIDIA GPUs — no proprietary drivers required.
-- On fedora, `libglvnd` libraries are included by default, so no extra setup is needed.
+- On Fedora, `libglvnd` libraries are included by default, so no extra setup is needed.
 
 The script clones llama.cpp into `./llama.cpp` if not present, then always fetches and builds the latest master. Re-run to update and rebuild.
 
-# Starting the server
+## Starting the Server
 
-## Models configuration
+### Models Configuration
 
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
@@ -93,18 +94,18 @@ The `models.json` config file defines named profiles with their own parameters. 
 - **gemma4** - Gemma 4 26B-A4B
 - **LightOn** - LightOnOCR 2.1B
 
-## Model Loading
+### Model Loading
 
 Models are configured via the `model` field in `models.json` using HuggingFace format `org/repo:quant`. The local hf cache is checked first, falling back to download if not found.
 
-### Local hf cache
+#### Local HF Cache
 If the model is not in the local hf cache it will be downloaded or updated. The local cache is managed with the `hf` (huggingface-hub) tool from Huggingface, see (https://huggingface.co/docs/huggingface_hub/en/guides/cli) and `hf cache --help`. To list contents of cache
 
 ```
 hf cache ls --format json | jq .
 ```
 
-## Starting the server
+### Starting the Server
 
 To start the server use one of the models configured in models.json.
 
