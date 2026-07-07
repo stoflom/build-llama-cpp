@@ -5,9 +5,9 @@ My Configuration:
 - Fedora 44 (latest workstation edition)
 - AMD Ryzen 9 PRO 8945HS
 - 64GB RAM, VRAM  configured to AUTO in BIOS
-- AMD ROCm etc. see ROCM_BUILD.md and the llama.cpp documents.
+- AMD ROCm etc. see the llama.cpp documentation for the current HIP/ROCm build requirements.
 
-By default the script now builds GPU support on Vulkan rather then ROCm/HIP. On my setup, performance is similar but Vulkan seems more stable.
+By default the script builds GPU support on Vulkan rather than ROCm/HIP. On my setup, performance is similar but Vulkan seems more stable.
 
 ## BIOS
 
@@ -20,37 +20,45 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 ## Available Scripts
 
-The following scripts are available for use:
-
-- `build_lamacpp.sh` - Build llama.cpp with ROCm/HIP or Vulkan (default) support
-- `start_server.sh` - Start llama-server with model selection from json configuration file (models.json).
+- `build_lamacpp.sh` - Build llama.cpp with Vulkan (default) or ROCm/HIP support
+- `start_server.sh` - Start llama-server with model selection from `models.json`
 
 # Getting Started
 
-## Hardware and Software Requirements
+## Requirements
 
 - llama.cpp (auto-cloned by `build_lamacpp.sh` into `./llama.cpp`, or clone manually first)
 - jq (for parsing `models.json`)
 - Internet connection (for automatic model downloads from Hugging Face)
-- Python3
-- cmake, git, make (build tools)
+- Python3, cmake, git, make
 
-**Note:** The `build_lamacpp.sh hip` script builds llama.cpp with ROCm/HIP support for AMD GPUs, or Vulkan support with `./build_lamacpp.sh vulkan` (default). For NVIDIA GPUs or pre-built binaries, see llama.cpp documentation.
+**Note:** Default backend is Vulkan. Use `./build_lamacpp.sh hip` for AMD ROCm/HIP support. For NVIDIA or pre-built binaries, see llama.cpp documentation.
 
 ### Build Script Options
-
-Use `./build_lamacpp.sh -h` or `--help` to view all options:
 
 ```
 Usage: build_lamacpp.sh [OPTIONS] [BACKEND]
 
+Build llama.cpp with GPU acceleration support.
+
+Arguments:
+  BACKEND     Build backend to use (default: vulkan)
+               hip      - Build with ROCm/HIP support
+               vulkan   - Build with Vulkan support
+
 Options:
   -h, --help              Show this help message and exit
-  -o, --output DIR        Set custom build output directory under llama.cpp subdirectory
+  -o, --output DIR        Set the build output directory
+                          (default: ./llama.cpp/build)
+
+Examples:
+  ./build_lamacpp.sh                  # Vulkan (default)
+  ./build_lamacpp.sh hip              # ROCm/HIP
+  ./build_lamacpp.sh -o build-vulkan  # Custom output dir
 ```
 ## Dependencies
 
-### HIP / ROCm (AMD GPU, default)
+### HIP / ROCm (AMD GPU)
 
 ```bash
 sudo dnf install rocm-hip rocm-opencl rocm-runtime rocm-smi rocminfo rocm-devel
@@ -73,34 +81,17 @@ sudo dnf install vulkan-headers vulkan-loader-devel vulkan-tools spirv-tools gls
 - Supports AMD, Intel, and NVIDIA GPUs — no proprietary drivers required.
 - On fedora, `libglvnd` libraries are included by default, so no extra setup is needed.
 
-### To build llama.cpp:
-
-```bash
-# Build for AMD ROCm/HIP
-./build_lamacpp.sh hip
-
-# Or build for Vulkan (default)
-./build_lamacpp.sh vulkan
-
-# Custom build directory
-./build_lamacpp.sh -o build-vulkan   (output in ./llama.cpp/build-vulkan)
-```
-The script automatically clones llama.cpp into `./llama.cpp` if it is not already present.
-To use a specific commit or manual clone, run `git clone https://github.com/ggerganov/llama.cpp.git` before building.
-
-Vulkan performance is similar (320/22tps compared to 340/17tps) but maybe more stable.
-
-The script can be run repeatedly to update and build llama.cpp with new (daily) updates.
+The script clones llama.cpp into `./llama.cpp` if not present, then always fetches and builds the latest master. Re-run to update and rebuild.
 
 # Starting the server
 
 ## Models configuration
 
-The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true` e.g. in sample `models.json`:
+The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
-- **llama33** - Llama 3.3 8B  [default]
-- **glm47** - GLM-4.7 23B
-- **qwen35** - Qwen3.5 35B
+- **qwen36** - Qwen3.6 35B-A3B [default]
+- **gemma4** - Gemma 4 26B-A4B
+- **LightOn** - LightOnOCR 2.1B
 
 ## Model Loading
 
@@ -130,17 +121,17 @@ To start the server use one of the models configured in models.json.
 
 ## Options
 
-You can use the following options for `start_server.sh`:
+Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-f|--force-download] [extra_flags...]`
 
-- `-m, --model <profile>` - Use a named profile from `models.json`
-- `-c, --context <num>` - Override context size from `models.json`
-- `-s, --select` - Interactive model selection menu (Enter loads default)
-- `-l, --list` - Validates `models.json` and lists configured models
-- `-p, --print` - Prints the command that will be executing without actually executing it
-- `-f, --force-download` - Force download from HuggingFace even if local file exists
-- `-h, --help` - Display help with all these options
-
-any extra flags at the end, e.g. `-ngl 40` will be passed on to llama-server.
+- `-m, --model <profile>` - Model profile key (e.g. qwen36, gemma4, LightOn)
+- `-c, --context <num>` - Override context size from profile
+- `-s, --select` - Interactive model selection menu
+- `-l, --list` - Validate `models.json` and list available profiles
+- `-p, --print` - Print command without executing
+- `-f, --force-download` - Force download from HuggingFace
+- `-h, --help` - Display this help message
+  
+Any extra flags (e.g. `--port 8080`) are passed through to llama-server.
 
 # Adding Models to models.json
 
@@ -172,25 +163,25 @@ Edit `models.json` to add a new profile e.g.:
 ## Text or Coding
 
 ```bash
-# Start with default model (llama33)
+# Start with default model (qwen36)
 ./start_server.sh
 
-# List available profiles (shows default marked)
+# List available profiles (default marked)
 ./start_server.sh --list
 
-# Interactive selection (default shown, Enter loads default)
+# Interactive selection (Enter loads default)
 ./start_server.sh --select
 
 # Start with a specific model profile
-./start_server.sh --model glm47
-./start_server.sh -m qwen35
+./start_server.sh --model gemma4
+./start_server.sh -m qwen36
 
 # Combine with other options
-./start_server.sh --model qwen35 --context 32768
-./start_server.sh -m llama33 -c 16384
+./start_server.sh --model gemma4 --context 32768
+./start_server.sh -m qwen36 -c 16384
 
 # Pass extra flags to llama-server
-./start_server.sh --model glm47 --port 8080
+./start_server.sh --model gemma4 --port 8080
 ```
 
 ## For OCR with LightOnOCR model
@@ -214,14 +205,12 @@ Edit `models.json` to add a new profile e.g.:
 
 **NOTE: the LightOnOCR model is optimized for scans at 200dpi using normal fonts. For small fonts, math or handwritten text use 300dpi. This applies to the scanner as well as the `--dpi` parameter of the script.**
 
-Other visually capable models, e.g. Qwen3.5, also works well for OCR with the same python script.
+Other visually capable models (e.g. Qwen3.6) also work well for OCR with the same python script.
 
 # Troubleshooting
 
 If the model fails to load the problem is normally insufficient GPU RAM. On my setup I have 64GB shared RAM, half of which made available to GPU (VRAM) by the os. This means I can load models with 30G parameters but limited context of 8192, or smaller models with larger context. You can also try reducing the llama-server memory usage by harsher quantization. I find a smaller batch size (default=2048) e.g. `-b 512` works better.
 
-# Working with Pi coding agent (or OpenCode)
+# Working with coding agents (Pi, OpenCode)
 
-Pi seems fairly stable when running qwen35 with a context of 65536 in. Gemma4 is also useful but less stable. On the ROCm/HIP driver GPU Hangs tend to happen after a while. The problem does not seem related to memory constraints, rather instabilities in the driver. Smaller models are fine and OCR works very well.
-
-Pi also works ok with qwen3.6-35B or 27B, but they are a lot slower.
+Qwen3.6 35B (default) works well with a context of 65536. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.

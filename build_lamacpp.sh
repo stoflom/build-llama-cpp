@@ -45,9 +45,8 @@ Examples:
   ./build_lamacpp.sh -o build-vulkan
 
 Source Code:
-  llama.cpp is cloned automatically if not present in ./llama.cpp.
-  To clone manually instead:
-    git clone https://github.com/ggerganov/llama.cpp.git
+  llama.cpp is cloned automatically if not present in ./llama.cpp,
+  then always updated to the latest master before building.
 
 Dependencies:
   See ./llama.cpp/README.md
@@ -107,9 +106,8 @@ fi
 # -----------------------------------------------------------------------------
 # Clone Source (if not already present)
 # -----------------------------------------------------------------------------
-# Automatically clones llama.cpp into ./llama.cpp if the directory does not exist.
-# To skip auto-cloning, clone manually first:
-#   git clone https://github.com/ggerganov/llama.cpp.git
+# Automatically clones llama.cpp into ./llama.cpp if not present,
+# then always updates to latest master before building.
 if [ ! -d "$SOURCE_DIR" ]; then
 	echo "Cloning llama.cpp source into $SOURCE_DIR..."
 	git clone https://github.com/ggerganov/llama.cpp.git
