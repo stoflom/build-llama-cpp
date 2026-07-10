@@ -407,8 +407,12 @@ elif [ "$USE_MENU" = true ]; then
 		fi
 	done
 
-	PS3="Select a profile (1-${#MODEL_PROFILES[@]}) [default: $DEFAULT_PROFILE]: "
-	read -r selection
+	echo ""
+	echo "  Enter  → load default ($DEFAULT_PROFILE)"
+	echo "  1-${#MODEL_PROFILES[@]}  → select profile"
+	echo "  Any other key → quit"
+	echo ""
+	read -rp "Selection [Enter/$DEFAULT_PROFILE]: " selection
 
 	if [ -z "$selection" ]; then
 		load_model_config "$DEFAULT_PROFILE"
@@ -416,8 +420,8 @@ elif [ "$USE_MENU" = true ]; then
 		profile="${MODEL_PROFILES[$((selection - 1))]}"
 		load_model_config "$profile"
 	else
-		echo "Invalid selection, loading default: $DEFAULT_PROFILE"
-		load_model_config "$DEFAULT_PROFILE"
+		echo "Aborted."
+		exit 0
 	fi
 else
 	load_model_config "$DEFAULT_PROFILE"
