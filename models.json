@@ -36,7 +36,7 @@
       "default": false
     },
     "qwen36-27": {
-      "model": "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL",
+      "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
       "context": 65536,
       "options": [
         "-fa on",

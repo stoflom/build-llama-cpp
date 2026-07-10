@@ -352,21 +352,9 @@ if [ "$NEW_MODEL" = true ]; then
 	echo "Profile '$new_profile' added to $CONFIG_FILE:"
 	jq ".models[\"$new_profile\"]" "$CONFIG_FILE"
 	echo ""
-
-	# Ask whether to download the model now
-	read -rp "Download model from HuggingFace now? (Y/n): " do_download
-	if [[ ! "$do_download" =~ ^[nN]$ ]]; then
-		# Strip :variant suffix (llama-server syntax, not valid for hf download)
-		dl_repo="${new_model%%:*}"
-		echo "Downloading $dl_repo..."
-		if command -v hf &>/dev/null; then
-			hf download "$dl_repo"
-		else
-			echo "hf not found. The model will be downloaded when the server is started."
-		fi
-	fi
-
 	echo "Done. Start with: $0 -m $new_profile"
+    echo "The model will be downloaded when the server is started if not in the local cache."
+    echo ""
 	exit 0
 fi
 
