@@ -471,6 +471,7 @@ CMD=(build/bin/llama-server
 	"${extra_flags[@]}")
 
 if [ "$PRINT_ONLY" = true ]; then
+    echo "PWD: ${PWD}"
 	echo "Command: ${CMD[*]}"
 	exit 0
 fi
