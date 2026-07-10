@@ -4,17 +4,48 @@
       "default": true,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
       "context": 65536,
-      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all"]
+      "options": [
+        "-fa on",
+        "-ctk q4_0",
+        "-ctv q4_0",
+        "-b 512",
+        "--tools all"
+      ]
     },
-    "gemma4":{
-      "model":"unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
+    "gemma4": {
+      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
       "context": 65536,
-      "options": ["-fa on", "-ctk q4_0", "-ctv q4_0", "-b 512", "--tools all"]
+      "options": [
+        "-fa on",
+        "-ctk q4_0",
+        "-ctv q4_0",
+        "-b 512",
+        "--tools all"
+      ],
+      "default": false
     },
     "LightOn": {
       "model": "staghado/LightOnOCR-2-1B-Q8_0-GGUF",
       "context": 16384,
-      "options": ["-fa on", "--temp 0.2", "--top-k 0", "--top-p 0.9"]
+      "options": [
+        "-fa on",
+        "--temp 0.2",
+        "--top-k 0",
+        "--top-p 0.9"
+      ],
+      "default": false
+    },
+    "qwen27": {
+      "model": "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL",
+      "context": 32768,
+      "options": [
+        "-fa on",
+        "-ctk q4_0",
+        "-ctv q4_0",
+        "-b 512",
+        "--tools all"
+      ],
+      "default": false
     }
   }
 }

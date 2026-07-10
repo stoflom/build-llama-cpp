@@ -24,6 +24,11 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 - `start_server.sh` - Start llama-server with model selection from `models.json`
 - `ocr-ai.py` - Perform OCR on PDF documents using a selected model
 
+## Model Comparison
+
+- **Qwen3.6 35B** (default) - Better for general purpose tasks
+- **Qwen3.6 27B** - Better for coding complex tasks but much slower
+
 ## Getting Started
 
 ### Requirements
@@ -91,6 +96,7 @@ The script clones llama.cpp into `./llama.cpp` if not present, then always fetch
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
 - **qwen36** - Qwen3.6 35B-A3B [default]
+- **qwen27** - Qwen3.6 27B
 - **gemma4** - Gemma 4 26B-A4B
 - **LightOn** - LightOnOCR 2.1B
 
@@ -226,4 +232,4 @@ If the model fails to load the problem is normally insufficient GPU RAM. On my s
 
 # Working with coding agents (Pi, OpenCode)
 
-Qwen3.6 35B (default) works well with a context of 65536. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
+Qwen3.6 35B (default) works well for general purpose tasks with a context of 65536. Qwen3.6 27B is better for complex coding tasks but much slower. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
