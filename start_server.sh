@@ -133,6 +133,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  name    - Profile key used with -m flag (e.g. qwen36, gemma4, LightOn)"
 		echo "  model   - HuggingFace model ID, in local cache after first use"
 		echo "  context - Context window size"
+		echo "  comment - Short description of the model capabilities"
 		echo "  options - Additional llama-server flags (array)"
 		echo "  default - Mark this profile as the default (boolean)"
 		echo ""
@@ -241,6 +242,7 @@ if [ "$LIST_MODELS" = true ]; then
 	for profile in "${MODEL_PROFILES[@]}"; do
 		model=$(get_model_info "$profile" "model")
 		context=$(get_model_info "$profile" "context")
+		comment=$(get_model_info "$profile" "comment")
 		options=$(jq -r ".models[\"$profile\"].options | if . then map(\" \" + .) | join(\"\") else \"\" end" "$CONFIG_FILE")
 		is_default=$(get_model_info "$profile" "default")
 		default_marker=""
@@ -248,6 +250,9 @@ if [ "$LIST_MODELS" = true ]; then
 			default_marker=" (default)"
 		fi
 		echo "[$profile]$default_marker"
+		if [ -n "$comment" ]; then
+			echo "  Comment:   $comment"
+		fi
 		echo "  Model:     $model"
 		echo "  Context:   ${context:-32768}"
 		echo "  Options:   ${options:- none}"
@@ -312,6 +317,9 @@ if [ "$NEW_MODEL" = true ]; then
 		exit 1
 	fi
 
+	# Prompt for comment
+	read -rp "Comment (short description, e.g. 'General purpose, text and image'): " new_comment
+
 	# Prompt for options
 	read -rp "Additional options (comma-separated, e.g. -fa on,-ctk q4_0): " new_options_raw
 	options_json="[]"
@@ -331,9 +339,10 @@ if [ "$NEW_MODEL" = true ]; then
 	new_profile_json=$(jq -n \
 		--arg model "$new_model" \
 		--argjson context "$new_context" \
+		--arg comment "$new_comment" \
 		--argjson options "$options_json" \
 		--argjson default "$is_default" \
-		'{"model": $model, "context": $context, "options": $options, "default": $default}')
+		'{"model": $model, "context": $context, "comment": $comment, "options": $options, "default": $default}')
 
 	# If setting as default, clear default from all other profiles
 	if [ "$is_default" = "true" ]; then
@@ -382,10 +391,19 @@ elif [ "$USE_MENU" = true ]; then
 
 	for i in "${!MODEL_PROFILES[@]}"; do
 		profile="${MODEL_PROFILES[$i]}"
+		comment=$(get_model_info "$profile" "comment")
 		if [ "$profile" = "$DEFAULT_PROFILE" ]; then
-			echo "$((i + 1))) $profile (default)"
+			if [ -n "$comment" ]; then
+				echo "$((i + 1))) $profile (default) - $comment"
+			else
+				echo "$((i + 1))) $profile (default)"
+			fi
 		else
-			echo "$((i + 1))) $profile"
+			if [ -n "$comment" ]; then
+				echo "$((i + 1))) $profile - $comment"
+			else
+				echo "$((i + 1))) $profile"
+			fi
 		fi
 	done
 
@@ -413,6 +431,10 @@ START_OPTIONS=("${CONFIG_OPTIONS[@]}")
 
 echo "Starting server..."
 echo "Model:        $HF_MODEL"
+COMMENT=$(jq -r ".models[\"$MODEL_PROFILE\"].comment // empty" "$CONFIG_FILE")
+if [ -n "$COMMENT" ]; then
+	echo "Comment:      $COMMENT"
+fi
 echo "Context Size: $CONTEXT_SIZE"
 echo "Options:      ${START_OPTIONS[*]:-none}"
 if [ ${#extra_flags[@]} -gt 0 ]; then

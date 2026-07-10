@@ -95,10 +95,10 @@ The script clones llama.cpp into `./llama.cpp` if not present, then always fetch
 
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
-- **qwen36** - Qwen3.6 35B-A3B [default]
-- **qwen27** - Qwen3.6 27B
-- **gemma4** - Gemma 4 26B-A4B
-- **LightOn** - LightOnOCR 2.1B
+- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image) [default]
+- **qwen36-27** - Qwen3.6 27B (Complex reasoning but slow)
+- **gemma4** - Gemma 4 26B-A4B (General purpose, text and image)
+- **LightOn** - LightOnOCR 2.1B (OCR specialist, text and image)
 
 ### Model Loading
 
@@ -135,7 +135,7 @@ Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [
 - `-s, --select` - Interactive model selection menu
 - `-l, --list` - Validate `models.json` and list available profiles
 - `-p, --print` - Print command without executing
-- `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, options)
+- `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, comment, options)
 - `-f, --force-download` - Force download from HuggingFace
 - `-h, --help` - Display this help message
   
@@ -149,7 +149,7 @@ Use the `--new` flag to add a profile interactively:
 ./start_server.sh --new
 ```
 
-This will prompt for the profile name, HuggingFace model ID, context size, options, and whether to set it as default. It also offers to download the model immediately.
+This will prompt for the profile name, HuggingFace model ID, context size, comment, options, and whether to set it as default. It also offers to download the model immediately.
 
 Alternatively, edit `models.json` manually to add a new profile e.g.:
 
@@ -160,6 +160,7 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
       "default": false,
       "model": "org/repo:filename",
       "context": 32768,
+      "comment": "General purpose, text and image",
       "options": ["-fa on"]
     }
   }
@@ -172,6 +173,7 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 - `default` - Set `true` for one model only (used when no flags provided)
 - `model` - HuggingFace repo and filename in format `org/repo:filename`
 - `context` - Context window size in tokens
+- `comment` - Short description of model capabilities (displayed in listings and menus)
 - `options` - Additional llama-server flags
 
 # Examples script use:

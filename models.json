@@ -4,6 +4,7 @@
       "default": true,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
       "context": 65536,
+      "comment": "General purpose, text and image",
       "options": [
         "-fa on",
         "-ctk q4_0",
@@ -15,6 +16,7 @@
     "gemma4": {
       "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
       "context": 65536,
+      "comment": "General purpose, text and image",
       "options": [
         "-fa on",
         "-ctk q4_0",
@@ -27,6 +29,7 @@
     "LightOn": {
       "model": "staghado/LightOnOCR-2-1B-Q8_0-GGUF",
       "context": 16384,
+      "comment": "OCR specialist, text and image",
       "options": [
         "-fa on",
         "--temp 0.2",
@@ -38,6 +41,7 @@
     "qwen36-27": {
       "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
       "context": 65536,
+      "comment": "Complex reasoning but slow",
       "options": [
         "-fa on",
         "-ctk q4_0",
