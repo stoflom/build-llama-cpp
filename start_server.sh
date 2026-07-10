@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Binding server to host (override with --host <hostname> ):
+# Binding server to host (override with --host <hostname> --port <port>):
 HOST="0.0.0.0"
 PORT=8080
 
@@ -140,10 +140,10 @@ while [[ $# -gt 0 ]]; do
 		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
-		echo "  --host <addr>             Override the host binding address (default: 0.0.0.0)"
-		echo "  --port <port>             Override the listening port (default: 8080)"
+		echo "  --host <addr>             Override the host binding address (default: $HOST )"
+		echo "  --port <port>             Override the listening port (default: $PORT )"
 		echo "  -h, --help                Display this help message"
-		echo "  extra_flags               Any additional flags to pass to llama-server e.g. --tools all"
+		echo "  extra_flags               Any additional flags to pass to llama-server"
 		echo ""
 		echo "Model profile fields (in models.json):"
 		echo "  name    - Profile key used with -m flag (e.g. qwen36, gemma4, LightOn)"
