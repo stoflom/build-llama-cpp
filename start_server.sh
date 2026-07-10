@@ -340,10 +340,10 @@ if [ "$NEW_MODEL" = true ]; then
 	read -rp "Download model from HuggingFace now? (Y/n): " do_download
 	if [[ ! "$do_download" =~ ^[nN]$ ]]; then
 		echo "Downloading $new_model..."
-		if command -v huggingface-cli &>/dev/null; then
-			huggingface-cli download "$new_model"
+		if command -v hf &>/dev/null; then
+			hf download "$new_model"
 		else
-			echo "huggingface-cli not found. The model will be downloaded when the server is started."
+			echo "hf not found. The model will be downloaded when the server is started."
 		fi
 	fi
 
