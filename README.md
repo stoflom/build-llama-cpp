@@ -128,7 +128,7 @@ To start the server use one of the models configured in models.json.
 
 ## Options
 
-Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [extra_flags...]`
+Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [--host HOST] [--port PORT] [extra_flags...]`
 
 - `-m, --model <profile>` - Model profile key (e.g. qwen36, gemma4, LightOn)
 - `-c, --context <num>` - Override context size from profile
@@ -136,10 +136,12 @@ Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [
 - `-l, --list` - Validate `models.json` and list available profiles
 - `-p, --print` - Print command without executing
 - `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, comment, options)
+- `--host <addr>` - Override host binding address (default: 0.0.0.0)
+- `--port <port>` - Override listening port (default: 8080)
 - `-f, --force-download` - Force download from HuggingFace
 - `-h, --help` - Display this help message
 
-Any extra flags (e.g. `--port 8080`) are passed through to llama-server.
+Any extra flags are passed through to llama-server.
 
 # Adding Models to models.json
 
@@ -202,7 +204,10 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 ./start_server.sh -m qwen36 -c 16384
 
 # Pass extra flags to llama-server
-./start_server.sh --model gemma4 --port 8080
+./start_server.sh --model gemma4 --port 9090
+
+# Start on a different host and port
+./start_server.sh --host 127.0.0.1 --port 9090
 ```
 
 ## For OCR with LightOnOCR model

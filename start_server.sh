@@ -2,6 +2,7 @@
 
 # Binding server to host (override with --host <hostname> ):
 HOST="0.0.0.0"
+PORT=8080
 
 # ==============================================================================
 # Script: start_server.sh
@@ -64,7 +65,7 @@ load_model_config() {
 
 	CONFIG_OPTIONS=()
 	while IFS= read -r opt; do
-		[ -n "$opt" ] && CONFIG_OPTIONS+=("$opt")
+		[ -n "$opt" ] && CONFIG_OPTIONS+=($opt)
 	done < <(jq -r ".models[\"$profile\"].options[]?" "$CONFIG_FILE")
 }
 
@@ -113,6 +114,11 @@ while [[ $# -gt 0 ]]; do
 		HOST="$2"
 		shift 2
 		;;
+	# --port: Override the listening port
+	--port)
+		PORT="$2"
+		shift 2
+		;;
 	# -f or --force-download: Force download from HuggingFace even if local file exists
 	-f | --force-download)
 		echo "Note: -f flag is deprecated, download is always attempted"
@@ -125,7 +131,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 	# -h or --help: Display usage information.
 	-h | --help)
-		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [extra_flags...]"
+		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [--host HOST] [--port PORT] [extra_flags...]"
 		echo ""
 		echo "Options:"
 		echo "  -m, --model <profile>     Model profile key from models.json (e.g. qwen36, gemma4, LightOn)"
@@ -134,6 +140,8 @@ while [[ $# -gt 0 ]]; do
 		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
+		echo "  --host <addr>             Override the host binding address (default: 0.0.0.0)"
+		echo "  --port <port>             Override the listening port (default: 8080)"
 		echo "  -h, --help                Display this help message"
 		echo "  extra_flags               Any additional flags to pass to llama-server e.g. --tools all"
 		echo ""
@@ -456,6 +464,7 @@ echo "--------------------------------"
 
 CMD=(build/bin/llama-server
 	--host "$HOST"
+	--port "$PORT"
 	-hf "$HF_MODEL"
 	-c "$CONTEXT_SIZE"
 	"${START_OPTIONS[@]}"
