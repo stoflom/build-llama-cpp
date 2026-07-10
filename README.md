@@ -138,7 +138,7 @@ Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [
 - `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, comment, options)
 - `-f, --force-download` - Force download from HuggingFace
 - `-h, --help` - Display this help message
-  
+
 Any extra flags (e.g. `--port 8080`) are passed through to llama-server.
 
 # Adding Models to models.json
@@ -149,7 +149,7 @@ Use the `--new` flag to add a profile interactively:
 ./start_server.sh --new
 ```
 
-This will prompt for the profile name, HuggingFace model ID, context size, comment, options, and whether to set it as default. It also offers to download the model immediately.
+This will prompt for the profile name, HuggingFace model ID, context size, comment, options, and whether to set it as default.
 
 Alternatively, edit `models.json` manually to add a new profile e.g.:
 
