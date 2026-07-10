@@ -271,10 +271,27 @@ if [ "$NEW_MODEL" = true ]; then
 			continue
 		fi
 		if jq -e ".models[\"$new_profile\"]" "$CONFIG_FILE" > /dev/null 2>&1; then
-			echo "Error: Profile '$new_profile' already exists in $CONFIG_FILE."
-			continue
+			echo "Profile '$new_profile' already exists in $CONFIG_FILE."
+			echo "  1) Update (overwrite) this profile"
+			echo "  2) Choose a different name"
+			echo "  3) Quit"
+			read -rp "Choice [1/2/3]: " conflict_choice
+			case "$conflict_choice" in
+				1)
+					echo "Updating profile '$new_profile'..."
+					break
+					;;
+				2)
+					continue
+					;;
+				*)
+					echo "Aborted."
+					exit 0
+					;;
+			esac
+		else
+			break
 		fi
-		break
 	done
 
 	# Prompt for HuggingFace model ID
@@ -339,9 +356,11 @@ if [ "$NEW_MODEL" = true ]; then
 	# Ask whether to download the model now
 	read -rp "Download model from HuggingFace now? (Y/n): " do_download
 	if [[ ! "$do_download" =~ ^[nN]$ ]]; then
-		echo "Downloading $new_model..."
+		# Strip :variant suffix (llama-server syntax, not valid for hf download)
+		dl_repo="${new_model%%:*}"
+		echo "Downloading $dl_repo..."
 		if command -v hf &>/dev/null; then
-			hf download "$new_model"
+			hf download "$dl_repo"
 		else
 			echo "hf not found. The model will be downloaded when the server is started."
 		fi
