@@ -62,7 +62,10 @@ load_model_config() {
 		CONFIG_CONTEXT=32768
 	fi
 
-	CONFIG_OPTIONS=($(jq -r ".models[\"$profile\"].options[]?" "$CONFIG_FILE"))
+	CONFIG_OPTIONS=()
+	while IFS= read -r opt; do
+		[ -n "$opt" ] && CONFIG_OPTIONS+=("$opt")
+	done < <(jq -r ".models[\"$profile\"].options[]?" "$CONFIG_FILE")
 }
 
 # -----------------------------------------------------------------------------
@@ -104,6 +107,11 @@ while [[ $# -gt 0 ]]; do
 	-p | --print)
 		PRINT_ONLY=true
 		shift 1
+		;;
+	# --host: Override the host binding address
+	--host)
+		HOST="$2"
+		shift 2
 		;;
 	# -f or --force-download: Force download from HuggingFace even if local file exists
 	-f | --force-download)
@@ -362,8 +370,8 @@ if [ "$NEW_MODEL" = true ]; then
 	jq ".models[\"$new_profile\"]" "$CONFIG_FILE"
 	echo ""
 	echo "Done. Start with: $0 -m $new_profile"
-    echo "The model will be downloaded when the server is started if not in the local cache."
-    echo ""
+	echo "The model will be downloaded when the server is started if not in the local cache."
+	echo ""
 	exit 0
 fi
 
@@ -372,7 +380,7 @@ cd "$SOURCE_DIR"
 if [ ! -x "build/bin/llama-server" ]; then
 	echo "Error: llama-server binary not found or not executable"
 	echo "Please ensure it's built in $SOURCE_DIR/build"
-	echo "Run  build_lamacpp.sh  to build."
+	echo "Run build_llamacpp.sh to build."
 	exit 1
 fi
 

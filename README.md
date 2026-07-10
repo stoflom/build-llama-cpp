@@ -20,7 +20,7 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 ## Available Scripts
 
-- `build_lamacpp.sh` - Build llama.cpp with Vulkan (default) or ROCm/HIP support
+- `build_llamacpp.sh` - Build llama.cpp with Vulkan (default) or ROCm/HIP support
 - `start_server.sh` - Start llama-server with model selection from `models.json`
 - `ocr-ai.py` - Perform OCR on PDF documents using a selected model
 
@@ -33,17 +33,17 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 ### Requirements
 
-- llama.cpp (auto-cloned by `build_lamacpp.sh` into `./llama.cpp`, or clone manually first)
+- llama.cpp (auto-cloned by `build_llamacpp.sh` into `./llama.cpp`, or clone manually first)
 - jq (for parsing `models.json`)
 - Internet connection (for automatic model downloads from Hugging Face)
 - Python3, cmake, git, make
 
-**Note:** Default backend is Vulkan. Use `./build_lamacpp.sh hip` for AMD ROCm/HIP support. For NVIDIA or pre-built binaries, see llama.cpp documentation.
+**Note:** Default backend is Vulkan. Use `./build_llamacpp.sh hip` for AMD ROCm/HIP support. For NVIDIA or pre-built binaries, see llama.cpp documentation.
 
 #### Build Script Options
 
 ```
-Usage: build_lamacpp.sh [OPTIONS] [BACKEND]
+Usage: build_llamacpp.sh [OPTIONS] [BACKEND]
 
 Build llama.cpp with GPU acceleration support.
 
@@ -58,9 +58,9 @@ Options:
                           (default: ./llama.cpp/build)
 
 Examples:
-  ./build_lamacpp.sh                  # Vulkan (default)
-  ./build_lamacpp.sh hip              # ROCm/HIP
-  ./build_lamacpp.sh -o build-vulkan  # Custom output dir
+  ./build_llamacpp.sh                  # Vulkan (default)
+  ./build_llamacpp.sh hip              # ROCm/HIP
+  ./build_llamacpp.sh -o build-vulkan  # Custom output dir
 ```
 ### Dependencies
 
