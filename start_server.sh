@@ -71,6 +71,7 @@ load_model_config() {
 USE_MENU=false
 LIST_MODELS=false
 PRINT_ONLY=false
+NEW_MODEL=false
 MODEL_PROFILE=""
 extra_flags=()
 
@@ -109,9 +110,14 @@ while [[ $# -gt 0 ]]; do
 		echo "Note: -f flag is deprecated, download is always attempted"
 		shift 1
 		;;
+	# -n or --new: Add a new model profile to models.json (interactive)
+	-n | --new)
+		NEW_MODEL=true
+		shift 1
+		;;
 	# -h or --help: Display usage information.
 	-h | --help)
-		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-f|--force-download] [extra_flags...]"
+		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [extra_flags...]"
 		echo ""
 		echo "Options:"
 		echo "  -m, --model <profile>     Model profile key from models.json (e.g. qwen36, gemma4, LightOn)"
@@ -119,7 +125,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  -s, --select              Interactive model profile selection menu"
 		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
-		echo "  -f, --force-download      Force download from HuggingFace"
+		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
 		echo "  -h, --help                Display this help message"
 		echo "  extra_flags               Any additional flags to pass to llama-server e.g. --tools all"
 		echo ""
@@ -131,7 +137,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  default - Mark this profile as the default (boolean)"
 		echo ""
 		echo "Defaults: If no options provided, loads the default profile from models.json."
-        echo "To list the models in local cache: hf cache ls"
+		echo "To list the models in local cache: hf cache ls"
 		exit 0
 		;;
 	# Catch-all: Any unrecognized flag is stored for the final execution.
@@ -251,8 +257,99 @@ if [ "$LIST_MODELS" = true ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Environment Checks & Validation
+# Handle New Model Mode (no server required)
 # -----------------------------------------------------------------------------
+if [ "$NEW_MODEL" = true ]; then
+	echo "Adding a new model profile to $CONFIG_FILE"
+	echo "--------------------------------"
+
+	# Prompt for profile name
+	while true; do
+		read -rp "Profile name (e.g. qwen36): " new_profile
+		if [ -z "$new_profile" ]; then
+			echo "Error: Profile name cannot be empty."
+			continue
+		fi
+		if jq -e ".models[\"$new_profile\"]" "$CONFIG_FILE" > /dev/null 2>&1; then
+			echo "Error: Profile '$new_profile' already exists in $CONFIG_FILE."
+			continue
+		fi
+		break
+	done
+
+	# Prompt for HuggingFace model ID
+	while true; do
+		read -rp "HuggingFace model ID (e.g. unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M): " new_model
+		if [ -z "$new_model" ]; then
+			echo "Error: Model ID cannot be empty."
+			continue
+		fi
+		break
+	done
+
+	# Prompt for context size
+	read -rp "Context size [32768]: " new_context
+	new_context="${new_context:-32768}"
+	if ! [[ "$new_context" =~ ^[0-9]+$ ]]; then
+		echo "Error: Context size must be a number."
+		exit 1
+	fi
+
+	# Prompt for options
+	read -rp "Additional options (comma-separated, e.g. -fa on,-ctk q4_0): " new_options_raw
+	options_json="[]"
+	if [ -n "$new_options_raw" ]; then
+		# Convert comma-separated to JSON array
+		options_json=$(echo "$new_options_raw" | jq -R 'split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(. != ""))')
+	fi
+
+	# Prompt for default
+	is_default="false"
+	read -rp "Set as default? (y/N): " set_default
+	if [[ "$set_default" =~ ^[yY]$ ]]; then
+		is_default="true"
+	fi
+
+	# Build the new profile JSON
+	new_profile_json=$(jq -n \
+		--arg model "$new_model" \
+		--argjson context "$new_context" \
+		--argjson options "$options_json" \
+		--argjson default "$is_default" \
+		'{"model": $model, "context": $context, "options": $options, "default": $default}')
+
+	# If setting as default, clear default from all other profiles
+	if [ "$is_default" = "true" ]; then
+		jq --arg name "$new_profile" \
+			'.models |= with_entries(if .key != $name then .value.default = false else . end)' \
+			"$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+	fi
+
+	# Add the new profile
+	jq --arg name "$new_profile" \
+		--argjson profile "$new_profile_json" \
+		'.models[$name] = $profile' \
+		"$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+
+	echo ""
+	echo "Profile '$new_profile' added to $CONFIG_FILE:"
+	jq ".models[\"$new_profile\"]" "$CONFIG_FILE"
+	echo ""
+
+	# Ask whether to download the model now
+	read -rp "Download model from HuggingFace now? (Y/n): " do_download
+	if [[ ! "$do_download" =~ ^[nN]$ ]]; then
+		echo "Downloading $new_model..."
+		if command -v huggingface-cli &>/dev/null; then
+			huggingface-cli download "$new_model"
+		else
+			echo "huggingface-cli not found. The model will be downloaded when the server is started."
+		fi
+	fi
+
+	echo "Done. Start with: $0 -m $new_profile"
+	exit 0
+fi
 
 cd "$SOURCE_DIR"
 

@@ -122,13 +122,14 @@ To start the server use one of the models configured in models.json.
 
 ## Options
 
-Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-f|--force-download] [extra_flags...]`
+Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [extra_flags...]`
 
 - `-m, --model <profile>` - Model profile key (e.g. qwen36, gemma4, LightOn)
 - `-c, --context <num>` - Override context size from profile
 - `-s, --select` - Interactive model selection menu
 - `-l, --list` - Validate `models.json` and list available profiles
 - `-p, --print` - Print command without executing
+- `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, options)
 - `-f, --force-download` - Force download from HuggingFace
 - `-h, --help` - Display this help message
   
@@ -136,7 +137,15 @@ Any extra flags (e.g. `--port 8080`) are passed through to llama-server.
 
 # Adding Models to models.json
 
-Edit `models.json` to add a new profile e.g.:
+Use the `--new` flag to add a profile interactively:
+
+```bash
+./start_server.sh --new
+```
+
+This will prompt for the profile name, HuggingFace model ID, context size, options, and whether to set it as default. It also offers to download the model immediately.
+
+Alternatively, edit `models.json` manually to add a new profile e.g.:
 
 ```json
 {
@@ -166,6 +175,9 @@ Edit `models.json` to add a new profile e.g.:
 ```bash
 # Start with default model (qwen36)
 ./start_server.sh
+
+# Add a new model profile interactively
+./start_server.sh --new
 
 # List available profiles (default marked)
 ./start_server.sh --list
