@@ -40,7 +40,7 @@
     },
     "qwen36-27": {
       "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
-      "context": 65536,
+      "context": 131072,
       "comment": "Complex reasoning but slow",
       "options": [
         "-fa on",
