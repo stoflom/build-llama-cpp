@@ -3,13 +3,13 @@
     "qwen36": {
       "default": true,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
-      "context": 65536,
+      "context": 131072,
       "comment": "General purpose, text and image",
       "options": [
         "-fa on",
         "-ctk q4_0",
         "-ctv q4_0",
-        "-b 512",
+        "-b 1024",
         "--tools all"
       ]
     },
@@ -46,7 +46,7 @@
         "-fa on",
         "-ctk q4_0",
         "-ctv q4_0",
-        "-b 512",
+        "-b 1024",
         "--tools all"
       ],
       "default": false
