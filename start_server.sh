@@ -76,6 +76,7 @@ USE_MENU=false
 LIST_MODELS=false
 PRINT_ONLY=false
 NEW_MODEL=false
+ROUTING_MODE=false
 MODEL_PROFILE=""
 extra_flags=()
 
@@ -129,9 +130,14 @@ while [[ $# -gt 0 ]]; do
 		NEW_MODEL=true
 		shift 1
 		;;
+	# -r or --routing: Start in router mode (no model loaded, Pi requests on demand)
+	-r | --routing)
+		ROUTING_MODE=true
+		shift 1
+		;;
 	# -h or --help: Display usage information.
 	-h | --help)
-		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [--host HOST] [--port PORT] [extra_flags...]"
+		echo "Usage: $0 [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [-r|--routing] [--host HOST] [--port PORT] [extra_flags...]"
 		echo ""
 		echo "Options:"
 		echo "  -m, --model <profile>     Model profile key from models.json (e.g. qwen36, gemma4, LightOn)"
@@ -140,6 +146,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
+		echo "  -r, --routing             Start in router mode (no model loaded, Pi requests on demand)"
 		echo "  --host <addr>             Override the host binding address (default: $HOST )"
 		echo "  --port <port>             Override the listening port (default: $PORT )"
 		echo "  -h, --help                Display this help message"
@@ -435,6 +442,13 @@ elif [ "$USE_MENU" = true ]; then
 	fi
 else
 	load_model_config "$DEFAULT_PROFILE"
+fi
+
+# -----------------------------------------------------------------------------
+# Handle Routing Mode Flag
+# -----------------------------------------------------------------------------
+if [ "$ROUTING_MODE" = true ]; then
+	HF_MODEL=""
 fi
 
 # -----------------------------------------------------------------------------

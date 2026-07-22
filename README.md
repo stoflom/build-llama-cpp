@@ -26,8 +26,9 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 
 ## Model Comparison
 
-- **Qwen3.6 35B** (default) - Better for general purpose tasks
+- **Qwen3.6 35B** - Better for general purpose tasks
 - **Qwen3.6 27B** - Better for coding complex tasks but much slower
+- **routing** (default) - Router mode for Pi, loads models on demand
 
 ## Getting Started
 
@@ -95,7 +96,8 @@ The script clones llama.cpp into `./llama.cpp` if not present, then always fetch
 
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
-- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image) [default]
+- **routing** (default) - Router mode, no model loaded, Pi requests models on demand
+- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image)
 - **qwen36-27** - Qwen3.6 27B (Complex reasoning but slow)
 - **gemma4** - Gemma 4 26B-A4B (General purpose, text and image)
 - **LightOn** - LightOnOCR 2.1B (OCR specialist, text and image)
@@ -128,7 +130,7 @@ To start the server use one of the models configured in models.json.
 
 ## Options
 
-Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [--host HOST] [--port PORT] [extra_flags...]`
+Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [-l|--list] [-p|--print] [-n|--new] [-r|--routing] [--host HOST] [--port PORT] [extra_flags...]`
 
 - `-m, --model <profile>` - Model profile key (e.g. qwen36, gemma4, LightOn)
 - `-c, --context <num>` - Override context size from profile
@@ -136,6 +138,7 @@ Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [
 - `-l, --list` - Validate `models.json` and list available profiles
 - `-p, --print` - Print command without executing
 - `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, comment, options)
+- `-r, --routing` - Start in router mode (no model loaded, Pi requests on demand)
 - `--host <addr>` - Override host binding address (default: 0.0.0.0)
 - `--port <port>` - Override listening port (default: 8080)
 - `-f, --force-download` - Force download from HuggingFace
@@ -179,6 +182,21 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 - `options` - Additional llama-server flags
 
 # Examples script use:
+
+## Router Mode (for Pi)
+
+```bash
+# Start in routing mode (default)
+./start_server.sh
+
+# Or explicitly with -r flag (ignores default model)
+./start_server.sh -r
+
+# Routing mode with custom context
+./start_server.sh -r -c 65536
+```
+
+In router mode, no model is loaded initially. Pi uses `/llama` to load models on demand.
 
 ## Text or Coding
 
@@ -239,4 +257,6 @@ If the model fails to load the problem is normally insufficient GPU RAM. On my s
 
 # Working with coding agents (Pi, OpenCode)
 
-Qwen3.6 35B (default) works well for general purpose tasks with a context of 65536. Qwen3.6 27B is better for complex coding tasks but much slower. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
+Qwen3.6 35B works well for general purpose tasks with a context of 65536. Qwen3.6 27B is better for complex coding tasks but much slower. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
+
+For Pi integration, use router mode: `./start_server.sh -r`. Then configure Pi with `/login llama.cpp` and use `/llama` to load models on demand.
