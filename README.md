@@ -96,8 +96,8 @@ The script clones llama.cpp into `./llama.cpp` if not present, then always fetch
 
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
-- **routing** (default) - Router mode, no model loaded, Pi requests models on demand
-- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image)
+- **routing** - Router mode, no model loaded, Pi requests models on demand
+- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image) (default)
 - **qwen36-27** - Qwen3.6 27B (Complex reasoning but slow)
 - **gemma4** - Gemma 4 26B-A4B (General purpose, text and image)
 - **LightOn** - LightOnOCR 2.1B (OCR specialist, text and image)

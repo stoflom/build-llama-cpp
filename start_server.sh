@@ -146,7 +146,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  -l, --list                Validates models.json and lists available model profiles"
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
-		echo "  -r, --routing             Start in router mode (no model loaded, Pi requests on demand)"
+		echo "  -r, --routing             Start in router mode (no model loaded, agent requests on demand)"
 		echo "  --host <addr>             Override the host binding address (default: $HOST )"
 		echo "  --port <port>             Override the listening port (default: $PORT )"
 		echo "  -h, --help                Display this help message"
@@ -449,6 +449,7 @@ fi
 # -----------------------------------------------------------------------------
 if [ "$ROUTING_MODE" = true ]; then
 	HF_MODEL=""
+	# Set env variable for pi agent
 	export LLAMA_BASE_URL="http://${HOST}:${PORT}"
 fi
 
