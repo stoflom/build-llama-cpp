@@ -1,7 +1,7 @@
 {
   "models": {
     "qwen36": {
-      "default": true,
+      "default": false,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
       "context": 131072,
       "comment": "General purpose, text and image",
@@ -37,6 +37,18 @@
         "--top-p 0.9"
       ],
       "default": false
+    },
+    "routing": {
+      "model": null,
+      "context": 131072,
+      "comment": "Router mode – let Pi request any model on demand",
+      "options": [
+        "-fa on",
+        "-b 1024",
+        "--tools all",
+        "--models-max 1"
+      ],
+      "default": true
     },
     "qwen36-27": {
       "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",

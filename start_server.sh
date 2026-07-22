@@ -51,11 +51,11 @@ load_model_config() {
 	hf_model=$(jq -r ".models[\"$profile\"].model // empty" "$CONFIG_FILE")
 
 	if [ -z "$hf_model" ]; then
-		echo "Error: Profile '$profile' not found in $CONFIG_FILE or has no 'model' field"
-		exit 1
+		# Routing/profiles without a model (router mode) – skip HF model
+		HF_MODEL=""
+	else
+		HF_MODEL="${hf_model}"
 	fi
-
-	HF_MODEL="${hf_model}"
 
 	CONFIG_CONTEXT=$(jq -r ".models[\"$profile\"].context // empty" "$CONFIG_FILE")
 
@@ -199,13 +199,7 @@ validate_config() {
 		exit 1
 	fi
 
-	# 3. Check if every profile has a 'model' field
-	local missing_model
-	missing_model=$(jq -r '.models | to_entries | .[] | select(.value.model == null or .value.model == "") | .key' "$CONFIG_FILE")
-	if [ -n "$missing_model" ]; then
-		echo "Error: The following profiles are missing a 'model' field: $missing_model"
-		exit 1
-	fi
+	# 3. Profiles with model: null are valid (router mode, no -hf flag)
 
 	# 4. Check if there is exactly one default profile
 	local default_count
@@ -447,28 +441,46 @@ fi
 # Server Execution
 # -----------------------------------------------------------------------------
 CONTEXT_SIZE="${CONTEXT_SIZE:-$CONFIG_CONTEXT}"
-START_OPTIONS=("${CONFIG_OPTIONS[@]}")
 
 echo "Starting server..."
-echo "Model:        $HF_MODEL"
 COMMENT=$(jq -r ".models[\"$MODEL_PROFILE\"].comment // empty" "$CONFIG_FILE")
 if [ -n "$COMMENT" ]; then
 	echo "Comment:      $COMMENT"
 fi
+if [ -n "$HF_MODEL" ]; then
+	echo "Model:        $HF_MODEL"
+else
+	echo "Mode:         Router (no model, Pi requests on demand)"
+fi
 echo "Context Size: $CONTEXT_SIZE"
-echo "Options:      ${START_OPTIONS[*]:-none}"
+if [ ${#CONFIG_OPTIONS[@]} -gt 0 ]; then
+	echo "Options:      ${CONFIG_OPTIONS[*]}"
+else
+	echo "Options:      none"
+fi
 if [ ${#extra_flags[@]} -gt 0 ]; then
 	echo "Extra Flags:  ${extra_flags[*]}"
 fi
 echo "--------------------------------"
 
-CMD=(build/bin/llama-server
-	--host "$HOST"
-	--port "$PORT"
-	-hf "$HF_MODEL"
-	-c "$CONTEXT_SIZE"
-	"${START_OPTIONS[@]}"
-	"${extra_flags[@]}")
+if [ -n "$HF_MODEL" ]; then
+	CMD=(build/bin/llama-server
+		--host "$HOST"
+		--port "$PORT"
+		-hf "$HF_MODEL"
+		-c "$CONTEXT_SIZE")
+else
+	CMD=(build/bin/llama-server
+		--host "$HOST"
+		--port "$PORT"
+		-c "$CONTEXT_SIZE")
+fi
+if [ ${#CONFIG_OPTIONS[@]} -gt 0 ]; then
+	CMD+=("${CONFIG_OPTIONS[@]}")
+fi
+if [ ${#extra_flags[@]} -gt 0 ]; then
+	CMD+=("${extra_flags[@]}")
+fi
 
 if [ "$PRINT_ONLY" = true ]; then
     echo "PWD: ${PWD}"
