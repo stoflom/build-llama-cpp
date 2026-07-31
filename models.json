@@ -15,7 +15,7 @@
     },
     "gemma4": {
       "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
-      "context": 65536,
+      "context": 131072,
       "comment": "General purpose, text and image",
       "options": [
         "-fa on",
@@ -46,7 +46,8 @@
         "-fa on",
         "-b 1024",
         "--tools all",
-        "--models-max 1"
+        "--models-max 1",
+        "--temp 0.7"
       ],
       "default": false
     },
@@ -59,7 +60,8 @@
         "-ctk q4_0",
         "-ctv q4_0",
         "-b 1024",
-        "--tools all"
+        "--tools all",
+        "--temp 0.7"
       ],
       "default": false
     }
