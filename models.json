@@ -1,7 +1,7 @@
 {
   "models": {
     "qwen36": {
-      "default": true,
+      "default": false,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
       "context": 131072,
       "comment": "General purpose, text and image",
@@ -14,7 +14,7 @@
       ]
     },
     "gemma4": {
-      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
+      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:Q4_K_XL",
       "context": 131072,
       "comment": "General purpose, text and image",
       "options": [
@@ -38,6 +38,18 @@
       ],
       "default": false
     },
+    "qwen35": {
+      "model": "unsloth/Qwen3.5-4B-GGUF:UD-Q4_K_XL",
+      "context": 16384,
+      "comment": "Lightweight, text and image",
+      "options": [
+        "-fa on",
+        "--temp 0.7",
+        "--top-k 0",
+        "--top-p 0.9"
+      ],
+      "default": false
+    },
     "routing": {
       "model": null,
       "context": 131072,
@@ -45,11 +57,17 @@
       "options": [
         "-fa on",
         "-b 1024",
+        "-ctk q4_0",
+        "-ctv q4_0",
         "--tools all",
-        "--models-max 1",
-        "--temp 0.7"
+        "--temp 0.6",
+        "--top-k 20",
+        "--top-p 0.95",
+        "--min_p 0.0",
+        "--presence_penalty 0.0",
+        "--repeat_penalty 1.0"
       ],
-      "default": false
+      "default": true
     },
     "qwen36-27": {
       "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
