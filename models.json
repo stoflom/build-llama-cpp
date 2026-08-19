@@ -1,5 +1,18 @@
 {
   "models": {
+   "qwen38": {
+      "default": false,
+      "model": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
+      "context": 131072,
+      "comment": "General purpose, text and image",
+      "options": [
+        "-fa on",
+        "-ctk q4_0",
+        "-ctv q4_0",
+        "-b 1024",
+        "--tools all"
+      ]
+    },
     "qwen36": {
       "default": false,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
