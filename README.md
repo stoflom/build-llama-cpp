@@ -163,7 +163,7 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
   "models": {
     "your-model": {
       "default": false,
-      "model": "org/repo:filename",
+      "model": "org/repo:quant",
       "context": 32768,
       "comment": "General purpose, text and image",
       "options": ["-fa on"]
@@ -176,7 +176,7 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 
 - `your-model` - Unique identifier used with `-m` flag
 - `default` - Set `true` for one model only (used when no flags provided)
-- `model` - HuggingFace repo and filename in format `org/repo:filename`
+- `model` - HuggingFace repo and quant tag in format `org/repo:quant` (the tag is matched against the file names in the repo, e.g. `UD-Q4_K_XL` matches `Qwen3.6-27B-UD-Q4_K_XL.gguf`); omit the tag to auto-pick a file from the repo
 - `context` - Context window size in tokens
 - `comment` - Short description of model capabilities (displayed in listings and menus)
 - `options` - Additional llama-server flags
@@ -196,7 +196,64 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 ./start_server.sh -r -c 65536
 ```
 
-In router mode, no model is loaded initially. Pi uses `/llama` to load models on demand.
+In router mode, no model is loaded initially. Pi uses `/llama` to load and unload models on demand.
+
+### Configuring Pi
+
+Define the router as a custom provider in `~/.pi/agent/models.json`. Each model `id` is passed to the API as-is, so use the same HuggingFace `org/repo:quant` values as the `model` fields in this repo's `models.json` — the server downloads and caches them automatically on first use:
+
+```json
+{
+  "providers": {
+    "llama.cpp": {
+      "baseUrl": "http://127.0.0.1:8080/v1",
+      "api": "openai-completions",
+      "apiKey": "llama",
+      "models": [
+        {
+          "id": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
+          "name": "Qwen3.8 27B (General Purpose, dense)",
+          "contextWindow": 128000,
+          "maxTokens": 8192,
+          "reasoning": true
+        },
+        {
+          "id": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
+          "name": "Qwen3.6 35B (General Purpose)",
+          "contextWindow": 128000,
+          "maxTokens": 8192,
+          "reasoning": true
+        },
+        {
+          "id": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
+          "name": "Qwen3.6 27B (Complex Thinking)",
+          "contextWindow": 128000,
+          "maxTokens": 8192,
+          "reasoning": true
+        },
+        {
+          "id": "unsloth/Qwen3.5-4B-GGUF:UD-Q4_K_XL",
+          "name": "Qwen3.5 4B (Quick Tasks)",
+          "contextWindow": 65536,
+          "maxTokens": 4096,
+          "reasoning": true
+        }
+      ]
+    }
+  }
+}
+```
+
+- `apiKey` is a placeholder — llama-server runs locally without auth, but Pi requires one for the models to appear in `/model`.
+- Keep `contextWindow` at or below the context the router was started with (`-c`).
+- Optional per-model fields: `input: ["text", "image"]` for vision models, `thinkingLevelMap` for models with selectable thinking levels, `samplingParams` for server-specific sampling knobs.
+- The file reloads each time you open `/model`, so no Pi restart is needed when editing.
+
+Then, inside Pi:
+
+1. `/login llama.cpp` — enter the router URL (default `http://127.0.0.1:8080`) and the placeholder API key.
+2. `/llama` — load or unload models on demand (can also download straight from Hugging Face). Only loaded models are selectable.
+3. `/model` — select a loaded model for the current session.
 
 ## Text or Coding
 
@@ -259,4 +316,4 @@ If the model fails to load the problem is normally insufficient GPU RAM. On my s
 
 Qwen3.6 35B works well for general purpose tasks with a context of 65536. Qwen3.6 27B is better for complex coding tasks but much slower. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
 
-For Pi integration, use router mode: `./start_server.sh -r`. Then configure Pi with `/login llama.cpp` and use `/llama` to load models on demand.
+For Pi integration, use router mode (see [Router Mode (for Pi)](#router-mode-for-pi)): start the server with `./start_server.sh -r`, define the provider in `~/.pi/agent/models.json`, configure Pi with `/login llama.cpp`, and use `/llama` to load models on demand.

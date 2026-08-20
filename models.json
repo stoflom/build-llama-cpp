@@ -4,7 +4,7 @@
       "default": false,
       "model": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
       "context": 131072,
-      "comment": "General purpose, text and image",
+      "comment": "General purpose, dense, various thinking levels",
       "options": [
         "-fa on",
         "-ctk q4_0",
@@ -27,7 +27,7 @@
       ]
     },
     "gemma4": {
-      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:Q4_K_XL",
+      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
       "context": 131072,
       "comment": "General purpose, text and image",
       "options": [
