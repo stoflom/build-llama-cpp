@@ -206,7 +206,7 @@ Define the router as a custom provider in `~/.pi/agent/models.json`. Pi retrieve
 curl http://localhost:8080/v1/models
 ```
 
-Note that the name returned by the router may not agree with the name given to `llama-server -hf` (i.e. the `model` fields in this repo's `models.json`) to originally load the model into the cache. For example, a model loaded with `unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL` is reported by the router as `unsloth/Qwen3.8-27B-GGUF:Q4_K_XL`. Always use the `/v1/models` name in the `id` field:
+Note that the name returned by the router may not agree with the name given to `llama-server -hf` (i.e. the `model` fields in this repo's `models.json`) to originally load the model into the cache. For example, a model loaded with `unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL` is reported by the router as `unsloth/Qwen3.8-27B-GGUF:Q4_K_XL` (without the `UD-`). Always use the `/v1/models` name in the `id` field of the pi file in `~/.pi/agent/models.json` e.g.:
 
 ```json
 {
@@ -221,7 +221,16 @@ Note that the name returned by the router may not agree with the name given to `
           "name": "Qwen3.8 27B (General Purpose, dense)",
           "contextWindow": 128000,
           "maxTokens": 8192,
-          "reasoning": true
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "off": "off",
+            "minimal": null,
+            "low": "low",
+            "medium": "medium",
+            "high": null,
+            "xhigh": "xhigh",
+            "max": null
+          }
         },
         {
           "id": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:Q4_K_M",
