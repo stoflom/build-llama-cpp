@@ -200,7 +200,13 @@ In router mode, no model is loaded initially. Pi uses `/llama` to load and unloa
 
 ### Configuring Pi
 
-Define the router as a custom provider in `~/.pi/agent/models.json`. Each model `id` is passed to the API as-is, so use the same HuggingFace `org/repo:quant` values as the `model` fields in this repo's `models.json` — the server downloads and caches them automatically on first use:
+Define the router as a custom provider in `~/.pi/agent/models.json`. Pi retrieves model IDs via the router's `/v1/models` endpoint, so each model `id` must exactly match the name returned by:
+
+```bash
+curl http://localhost:8080/v1/models
+```
+
+Note that the name returned by the router may not agree with the name given to `llama-server -hf` (i.e. the `model` fields in this repo's `models.json`) to originally load the model into the cache. For example, a model loaded with `unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL` is reported by the router as `unsloth/Qwen3.8-27B-GGUF:Q4_K_XL`. Always use the `/v1/models` name in the `id` field:
 
 ```json
 {
@@ -211,28 +217,28 @@ Define the router as a custom provider in `~/.pi/agent/models.json`. Each model 
       "apiKey": "llama",
       "models": [
         {
-          "id": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
+          "id": "unsloth/Qwen3.8-27B-GGUF:Q4_K_XL",
           "name": "Qwen3.8 27B (General Purpose, dense)",
           "contextWindow": 128000,
           "maxTokens": 8192,
           "reasoning": true
         },
         {
-          "id": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
+          "id": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:Q4_K_M",
           "name": "Qwen3.6 35B (General Purpose)",
           "contextWindow": 128000,
           "maxTokens": 8192,
           "reasoning": true
         },
         {
-          "id": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
+          "id": "unsloth/Qwen3.6-27B-MTP-GGUF:Q4_K_XL",
           "name": "Qwen3.6 27B (Complex Thinking)",
           "contextWindow": 128000,
           "maxTokens": 8192,
           "reasoning": true
         },
         {
-          "id": "unsloth/Qwen3.5-4B-GGUF:UD-Q4_K_XL",
+          "id": "unsloth/Qwen3.5-4B-GGUF:Q4_K_XL",
           "name": "Qwen3.5 4B (Quick Tasks)",
           "contextWindow": 65536,
           "maxTokens": 4096,
