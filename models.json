@@ -4,7 +4,7 @@
       "default": false,
       "model": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
       "context": 131072,
-      "comment": "General purpose, dense, various thinking levels",
+      "comment": "General purpose, dense, various thinking levels, slow",
       "options": [
         "-fa on",
         "-ctk q4_0",
@@ -81,20 +81,6 @@
         "--repeat_penalty 1.0"
       ],
       "default": true
-    },
-    "qwen36-27": {
-      "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
-      "context": 131072,
-      "comment": "Complex reasoning but slow",
-      "options": [
-        "-fa on",
-        "-ctk q4_0",
-        "-ctv q4_0",
-        "-b 1024",
-        "--tools all",
-        "--temp 0.7"
-      ],
-      "default": false
     }
   }
 }
