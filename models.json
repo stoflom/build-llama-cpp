@@ -10,6 +10,12 @@
         "-ctk q4_0",
         "-ctv q4_0",
         "-b 1024",
+        "--temp 1.0",
+        "--top-k 20",
+        "--top-p 0.95",
+        "--min_p 0.0",
+        "--presence_penalty 0.0",
+        "--repeat_penalty 1.0",
         "--tools all"
       ]
     },
@@ -34,7 +40,7 @@
         "-fa on",
         "-ctk q4_0",
         "-ctv q4_0",
-        "-b 512",
+        "-b 1024",
         "--tools all"
       ],
       "default": false
@@ -73,7 +79,7 @@
         "-ctk q4_0",
         "-ctv q4_0",
         "--tools all",
-        "--temp 0.6",
+        "--temp 1.0",
         "--top-k 20",
         "--top-p 0.95",
         "--min_p 0.0",
