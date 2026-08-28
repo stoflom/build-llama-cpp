@@ -468,7 +468,7 @@ fi
 # Consequences of that:
 #   - the profile 'context' field and -c/--context have no effect here
 #   - no 'Context Size' line is printed below (it would be misleading)
-#   - the server URL is exported so the agent knows where to request models
+#   - the agent must be configured separately to point at http://<host>:<port>
 if [ "$ROUTING_MODE" = true ]; then
 	HF_MODEL=""
 
@@ -485,8 +485,6 @@ if [ "$ROUTING_MODE" = true ]; then
 		exit 1
 	fi
 
-	# Set env variable for agent
-	export LLAMA_BASE_URL="http://${HOST}:${PORT}"
 fi
 
 # -----------------------------------------------------------------------------

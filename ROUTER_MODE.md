@@ -2,6 +2,8 @@
 
 Router mode allows a harness to select which model gets loaded.
 
+The INI section names are the model ids that clients request (`qwen38`, `qwen36`, `gemma4`, `LightOn`, `qwen35` in the preset below). When a client requests a model, the router loads it on demand with that section's parameters. `--models-max` caps how many models stay resident at once; with `--models-max 1`, requests for a different model are queued until the current one is unloaded.
+
 To configure different parameters per model in router mode, an INI file is used. Each section is one model; values in the global `[*]` section apply to all models unless overridden in a section. `ctx-size` defines the context window (per model or globally).
 
 ## models.ini file
@@ -17,7 +19,7 @@ ctx-size = 131072
 # KV Cache Quantization parameters
 cache-type-k = q4_0
 cache-type-v = q4_0
-# not more the 2 cpu threads (GPU memory contention)
+# not more than 2 CPU threads (GPU memory contention)
 threads = 2
 
 # General purpose dense model
@@ -30,7 +32,7 @@ top-p = 0.95
 min-p = 0.0
 presence-penalty = 0.0
 repeat-penalty = 1.0
-# MTP (2 doubles tokens generation rate )
+# MTP (doubles token generation rate)
 spec-type = draft-mtp
 spec-draft-n-max = 2
 tools = all
@@ -78,31 +80,57 @@ llama-server --models-preset <path>/models.ini --models-max 1
 
 The `--models-max` switch limits the server to load only one model at a time.
 
-The `routing` profile in `models.json` carries the preset reference in its `options` (`--models-preset ../models.ini --models-max 1`). `start_server.sh` refuses to start in router mode unless the selected profile's `options` include a `--models-preset <ini>` entry, and exports `LLAMA_BASE_URL` for the agent. Note that `-c/--context` and the profile `context` field have no effect in router mode — the context size comes from `ctx-size` in the INI preset.
+The `routing` profile in `models.json` carries the preset reference in its `options` (`--models-preset ../models.ini --models-max 1`). `start_server.sh` refuses to start in router mode unless the selected profile's `options` include a `--models-preset <ini>` entry. The preset path is relative to `llama.cpp/` (the directory the script runs the server from), so `../models.ini` resolves to the file next to this document. Note that `-c/--context` and the profile `context` field have no effect in router mode — the context size comes from `ctx-size` in the INI preset.
 
 ## Using router mode with the pi CLI
 
-Install the plugin:
+Current pi builds include llama.cpp router support built in — no plugin install needed. Configure the connection inside pi:
 
-```bash
-pi install npm:pi-llama-cpp
+```text
+/login llama.cpp
 ```
 
-Then configure pi in `~/.pi/agent/models.json` as follows:
+and enter the router URL (default `http://127.0.0.1:8080`) and an optional API key. The equivalent environment variables are `LLAMA_BASE_URL` and `LLAMA_API_KEY`.
+
+No `models.json` configuration is required: load the model in pi with `/llama` (select an INI section name, e.g. `qwen38`) and choose which one the session uses with `/model`.
+
+### Optional: per-model pi settings
+
+If you need pi-specific settings for a model (context window, max tokens, reasoning, ...), declare it in `~/.pi/agent/models.json`. Any INI section name can be listed:
 
 ```json
 {
   "providers": {
-    "llama-cpp": {
-      "baseUrl": "http://127.0.0.1:8080",
+    "llama.cpp": {
+      "baseUrl": "http://127.0.0.1:8080/v1",
       "api": "openai-completions",
-      "apiKey": "local",
+      "apiKey": "llama",
       "models": [
         {
-          "id": "llama-cpp-discover"
+          "id": "qwen38",
+          "contextWindow": 128000,
+          "maxTokens": 8192,
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "off": "off",
+            "minimal": null,
+            "low": "low",
+            "medium": "medium",
+            "high": null,
+            "xhigh": "xhigh",
+            "max": null
+          }
         }
       ]
     }
   }
 }
 ```
+
+Then load the model in pi with `/llama` and select it with `/model`.
+
+`baseUrl` notes:
+
+- `/v1` is the OpenAI-compatible route prefix. pi's `openai-completions` API appends `/chat/completions` to `baseUrl`, so it must end in `/v1` to hit `POST /v1/chat/completions`.
+- llama-server also registers a root alias `POST /chat/completions` plus its own non-OpenAI routes, so `baseUrl` without `/v1` happens to work too — but `/v1` is the canonical form (it is what pi's built-in llama provider generates).
+- The router management endpoints (model list, load, unload, SSE: `/models`, `/models/load`, `/models/unload`, `/models/sse`) live at the root, not under `/v1`.

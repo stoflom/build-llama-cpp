@@ -75,7 +75,7 @@
       "model": null,
       "comment": "Router mode – let agent request any model on demand, options from models.ini",
       "options": [
-        "--models-preset ../models.ini ",
+        "--models-preset ../models.ini",
         "--models-max 1"
       ],
       "default": true
