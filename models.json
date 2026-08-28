@@ -16,6 +16,8 @@
         "--min_p 0.0",
         "--presence_penalty 0.0",
         "--repeat_penalty 1.0",
+        "--spec-type draft-mtp",
+        "--spec-draft-n-max 2",
         "--tools all"
       ]
     },

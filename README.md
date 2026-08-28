@@ -24,11 +24,16 @@ Local LLM inference using llama.cpp on AMD Radeon iGPU, text, code generation an
 - `start_server.sh` - Start llama-server with model selection from `models.json`
 - `ocr-ai.py` - Perform OCR on PDF documents using a selected model
 
+## Configuration Files
+
+- `models.json` - Named model profiles (HF model, context, options) used by `start_server.sh`
+- `models.ini` - Per-model parameters for router mode (models, `ctx-size`, sampling); see [ROUTER_MODE.md](ROUTER_MODE.md)
+
 ## Model Comparison
 
-- **Qwen3.6 35B** - Better for general purpose tasks
-- **Qwen3.6 27B** - Better for coding complex tasks but much slower
-- **routing** (default) - Router mode for Pi, loads models on demand
+- **qwen36** (Qwen3.6 35B-A3B) - Better for general purpose tasks, text and image
+- **qwen38** (Qwen3.8 27B) - Better for coding complex tasks but much slower
+- **routing** (default) - Router mode for Pi, loads models on demand (see [ROUTER_MODE.md](ROUTER_MODE.md))
 
 ## Getting Started
 
@@ -96,11 +101,12 @@ The script clones llama.cpp into `./llama.cpp` if not present, then always fetch
 
 The `models.json` config file defines named profiles with their own parameters. Each profile has a unique identifier to be used with `-m`. The default profile is marked with `"default": true`. Current profiles:
 
-- **routing** - Router mode, no model loaded, Pi requests models on demand
-- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image) (default)
-- **qwen36-27** - Qwen3.6 27B (Complex reasoning but slow)
+- **routing** (default) - Router mode, no model loaded, Pi requests models on demand; its `options` must include `--models-preset <ini>` pointing at the INI preset (see [ROUTER_MODE.md](ROUTER_MODE.md))
+- **qwen38** - Qwen3.8 27B (General purpose, dense, various thinking levels, slow)
+- **qwen36** - Qwen3.6 35B-A3B (General purpose, text and image)
 - **gemma4** - Gemma 4 26B-A4B (General purpose, text and image)
 - **LightOn** - LightOnOCR 2.1B (OCR specialist, text and image)
+- **qwen35** - Qwen3.5 4B (Lightweight, text and image)
 
 ### Model Loading
 
@@ -118,8 +124,11 @@ hf cache ls --format json | jq .
 To start the server use one of the models configured in models.json.
 
 ```bash
-# Start server (default model)
+# Start server (default profile: routing/router mode; see ROUTER_MODE.md)
 ./start_server.sh
+
+# Start server with a specific model (non-router mode)
+./start_server.sh -m qwen36
 
 #or list available model profiles
 ./start_server.sh --list
@@ -138,7 +147,7 @@ Usage: `start_server.sh [-m|--model PROFILE] [-c|--context SIZE] [-s|--select] [
 - `-l, --list` - Validate `models.json` and list available profiles
 - `-p, --print` - Print command without executing
 - `-n, --new` - Add a new model profile interactively (prompts for name, HF model ID, context, comment, options)
-- `-r, --routing` - Start in router mode (no model loaded, Pi requests on demand)
+- `-r, --routing` - Start in router mode (no model loaded, Pi requests on demand). The profile's `options` must include `--models-preset <ini>`; per-model settings (including context size) then come from that INI file, so `-c` is ignored
 - `--host <addr>` - Override host binding address (default: 0.0.0.0)
 - `--port <port>` - Override listening port (default: 8080)
 - `-f, --force-download` - Force download from HuggingFace
@@ -185,15 +194,17 @@ Alternatively, edit `models.json` manually to add a new profile e.g.:
 
 ## Router Mode (for Pi)
 
+The models and their per-model parameters (including context size via `ctx-size`) are defined in the `models.ini` preset, referenced by the routing profile's `--models-preset` option in `models.json`. See [ROUTER_MODE.md](ROUTER_MODE.md) for the INI format.
+
 ```bash
-# Start in routing mode (default)
+# Start in routing mode (routing is the default profile)
 ./start_server.sh
 
-# Or explicitly with -r flag (ignores default model)
+# Or explicitly with the -r flag
 ./start_server.sh -r
 
-# Routing mode with custom context
-./start_server.sh -r -c 65536
+# Or with a specific routing profile
+./start_server.sh -r -m routing
 ```
 
 In router mode, no model is loaded initially. Pi uses `/llama` to load and unload models on demand.
@@ -260,7 +271,7 @@ Note that the name returned by the router may not agree with the name given to `
 ```
 
 - `apiKey` is a placeholder — llama-server runs locally without auth, but Pi requires one for the models to appear in `/model`.
-- Keep `contextWindow` at or below the context the router was started with (`-c`).
+- Keep `contextWindow` at or below the model's `ctx-size` in `models.ini` (per-model overrides included).
 - Optional per-model fields: `input: ["text", "image"]` for vision models, `thinkingLevelMap` for models with selectable thinking levels, `samplingParams` for server-specific sampling knobs.
 - The file reloads each time you open `/model`, so no Pi restart is needed when editing.
 
@@ -331,4 +342,4 @@ If the model fails to load the problem is normally insufficient GPU RAM. On my s
 
 Qwen3.6 35B works well for general purpose tasks with a context of 65536. Qwen3.6 27B is better for complex coding tasks but much slower. Gemma4 26B is also useful but more demanding. On ROCm/HIP, GPU hangs can occur after extended use — this appears to be driver instability rather than memory pressure. Smaller models and OCR workloads are very stable.
 
-For Pi integration, use router mode (see [Router Mode (for Pi)](#router-mode-for-pi)): start the server with `./start_server.sh -r`, define the provider in `~/.pi/agent/models.json`, configure Pi with `/login llama.cpp`, and use `/llama` to load models on demand.
+For Pi integration, use router mode (see [ROUTER_MODE.md](ROUTER_MODE.md) and [Router Mode (for Pi)](#router-mode-for-pi)): start the server with `./start_server.sh -r`, define the provider in `~/.pi/agent/models.json`, configure Pi with `/login llama.cpp`, and use `/llama` to load models on demand.

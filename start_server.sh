@@ -51,8 +51,11 @@ load_model_config() {
 	hf_model=$(jq -r ".models[\"$profile\"].model // empty" "$CONFIG_FILE")
 
 	if [ -z "$hf_model" ]; then
-		# Routing/profiles without a model (router mode) – skip HF model
+		# Profile without a model (e.g. 'routing'): that means router mode,
+		# whether or not -r was given (no model loaded up front; per-model
+		# settings come from the INI preset in the profile's options)
 		HF_MODEL=""
+		ROUTING_MODE=true
 	else
 		HF_MODEL="${hf_model}"
 	fi
@@ -90,6 +93,8 @@ while [[ $# -gt 0 ]]; do
 		shift 2
 		;;
 	# -c or --context: Override the default context size.
+	# (Only applies in model mode; ignored in router mode, where the
+	#  context size comes from the INI preset via --models-preset)
 	-c | --context)
 		CONTEXT_SIZE="$2"
 		shift 2
@@ -130,7 +135,8 @@ while [[ $# -gt 0 ]]; do
 		NEW_MODEL=true
 		shift 1
 		;;
-	# -r or --routing: Start in router mode (no model loaded, Pi requests on demand)
+	# -r or --routing: Start in router mode (no model loaded, Pi requests on demand).
+	#                 Requires the profile's options to include --models-preset <ini>.
 	-r | --routing)
 		ROUTING_MODE=true
 		shift 1
@@ -147,6 +153,7 @@ while [[ $# -gt 0 ]]; do
 		echo "  -p, --print               Print the command without executing it"
 		echo "  -n, --new                 Add a new model profile to models.json (interactive)"
 		echo "  -r, --routing             Start in router mode (no model loaded, agent requests on demand)"
+		echo "                            Requires --models-preset <ini> in the profile's options (models.json)"
 		echo "  --host <addr>             Override the host binding address (default: $HOST )"
 		echo "  --port <port>             Override the listening port (default: $PORT )"
 		echo "  -h, --help                Display this help message"
@@ -271,7 +278,11 @@ if [ "$LIST_MODELS" = true ]; then
 			echo "  Comment:   $comment"
 		fi
 		echo "  Model:     $model"
-		echo "  Context:   ${context:-32768}"
+		# Router profiles (no model) have no context of their own: the context
+		# size comes from the INI preset (--models-preset), so don't print it
+		if [ -n "$model" ]; then
+			echo "  Context:   ${context:-32768}"
+		fi
 		echo "  Options:   ${options:- none}"
 		echo ""
 	done
@@ -445,11 +456,36 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Handle Routing Mode Flag
+# Handle Routing Mode (set via -r flag, or a profile without a model)
 # -----------------------------------------------------------------------------
+# Router mode: llama-server starts WITHOUT a model loaded and acts as a router.
+# The agent/harness picks which model to load per request; each model's
+# parameters (hf-repo, ctx-size, sampling, ...) are read from the INI preset
+# file passed through the profile's options (--models-preset <ini>).
+# The profile's options in models.json MUST include a --models-preset flag
+# pointing at that INI file, otherwise llama-server would have no models
+# to route to -> validated here and aborted if missing.
+# Consequences of that:
+#   - the profile 'context' field and -c/--context have no effect here
+#   - no 'Context Size' line is printed below (it would be misleading)
+#   - the server URL is exported so the agent knows where to request models
 if [ "$ROUTING_MODE" = true ]; then
 	HF_MODEL=""
-	# Set env variable for pi agent
+
+	# Require a --models-preset entry in the profile's options
+	has_preset=false
+	for opt in "${CONFIG_OPTIONS[@]}"; do
+		case "$opt" in
+			--models-preset*) has_preset=true ;;
+		esac
+	done
+	if [ "$has_preset" = false ]; then
+		echo "Error: Router mode requires a --models-preset <ini> entry in the 'options' of profile '$MODEL_PROFILE' in $CONFIG_FILE."
+		echo "       It specifies the INI preset file with the models to route to (hf-repo, ctx-size, ...)."
+		exit 1
+	fi
+
+	# Set env variable for agent
 	export LLAMA_BASE_URL="http://${HOST}:${PORT}"
 fi
 
@@ -463,12 +499,14 @@ COMMENT=$(jq -r ".models[\"$MODEL_PROFILE\"].comment // empty" "$CONFIG_FILE")
 if [ -n "$COMMENT" ]; then
 	echo "Comment:      $COMMENT"
 fi
-if [ -n "$HF_MODEL" ]; then
-	echo "Model:        $HF_MODEL"
+# In router mode no model is loaded yet, so the profile's context value does
+# not apply (ctx-size comes from the INI preset) -> only print it in model mode
+if [ "$ROUTING_MODE" = true ]; then
+	echo "Mode:         Router (no model, harness requests on demand)"
 else
-	echo "Mode:         Router (no model, Pi requests on demand)"
+	echo "Model:        $HF_MODEL"
+	echo "Context Size: $CONTEXT_SIZE"
 fi
-echo "Context Size: $CONTEXT_SIZE"
 if [ ${#CONFIG_OPTIONS[@]} -gt 0 ]; then
 	echo "Options:      ${CONFIG_OPTIONS[*]}"
 else
@@ -479,16 +517,23 @@ if [ ${#extra_flags[@]} -gt 0 ]; then
 fi
 echo "--------------------------------"
 
-if [ -n "$HF_MODEL" ]; then
+# Build the llama-server command:
+#  - Model mode: load the profile's HF model up front with the profile's
+#    context size (-c). The 'context' field in models.json is authoritative.
+#  - Router mode: no -hf/-c flags. Models are loaded on demand when the agent
+#    requests them; each model's parameters (including ctx-size) come from the
+#    INI preset referenced by the profile's --models-preset option, which can
+#    be overridden per model section in that INI file.
+if [ "$ROUTING_MODE" = true ]; then
+	# Router mode: options come from the INI preset file (see above)
 	CMD=(build/bin/llama-server
 		--host "$HOST"
-		--port "$PORT"
-		-hf "$HF_MODEL"
-		-c "$CONTEXT_SIZE")
+		--port "$PORT")
 else
 	CMD=(build/bin/llama-server
 		--host "$HOST"
 		--port "$PORT"
+		-hf "$HF_MODEL"
 		-c "$CONTEXT_SIZE")
 fi
 if [ ${#CONFIG_OPTIONS[@]} -gt 0 ]; then
@@ -500,7 +545,7 @@ fi
 
 if [ "$PRINT_ONLY" = true ]; then
     echo "PWD: ${PWD}"
-	echo "Command: ${CMD[*]}"
+	echo "Command: ${CMD[@]}"
 	exit 0
 fi
 
