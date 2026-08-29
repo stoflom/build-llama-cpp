@@ -26,10 +26,10 @@ The preset next to this file (`models.ini`, content mirrored below for reference
 flash-attn = true
 batch-size = 1024
 ctx-size = 131072
-# KV Cache Quantization parameters
-cache-type-k = q4_0
+# KV Cache Quantization parameters (q8_0 is faster and more accurate, this is a compromise)
+cache-type-k = q8_0
 cache-type-v = q4_0
-# not more than 2 CPU threads (GPU memory contention)
+# not more than 2 CPU threads (GPU memory contention may be a problem when to many threads are running)
 threads = 2
 
 # General purpose dense model
@@ -115,7 +115,7 @@ For pi-specific settings (context window, max tokens, reasoning levels, ...), de
         {
           "id": "qwen38",
           "contextWindow": 128000,
-          "maxTokens": 8192,
+          "maxTokens": 16384,
           "reasoning": true,
           "thinkingLevelMap": {
             "off": "off",
