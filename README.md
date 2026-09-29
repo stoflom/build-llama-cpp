@@ -62,11 +62,14 @@ Options:
   -h, --help              Show this help message and exit
   -o, --output DIR        Set the build output directory
                           (default: ./llama.cpp/build)
+  -k, --no-pull           Skip git fetch/pull and recompile the existing
+                          source as-is (no update to latest master)
 
 Examples:
   ./build_llamacpp.sh                  # Vulkan (default)
   ./build_llamacpp.sh hip              # ROCm/HIP
   ./build_llamacpp.sh -o build-vulkan  # Custom output dir
+  ./build_llamacpp.sh --no-pull        # Rebuild without updating source
 ```
 ### Dependencies
 
@@ -93,7 +96,7 @@ sudo dnf install vulkan-headers vulkan-loader-devel vulkan-tools spirv-tools gls
 - Supports AMD, Intel, and NVIDIA GPUs — no proprietary drivers required.
 - On Fedora, `libglvnd` libraries are included by default, so no extra setup is needed.
 
-The script clones llama.cpp into `./llama.cpp` if not present, then always fetches and builds the latest master. Re-run to update and rebuild.
+The script clones llama.cpp into `./llama.cpp` if not present, then fetches and builds the latest master. Re-run to update and rebuild, or use `--no-pull` to recompile the existing source without updating it.
 
 ## Starting the Server
 

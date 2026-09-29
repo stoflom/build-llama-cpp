@@ -8,12 +8,14 @@
 # Options:
 #   -h, --help    Show this help message and exit
 #   -o, --output  Set output directory (default: llama.cpp/build)
+#   -k, --no-pull Skip git fetch/pull and build the existing source as-is
 # ==============================================================================
 
 set -euo pipefail
 
 # Default options
 GPU_BACKEND="vulkan"
+NO_PULL=false
 
 # -----------------------------------------------------------------------------
 # Print Help Message
@@ -33,6 +35,8 @@ Options:
   -h, --help              Show this help message and exit
   -o, --output DIR        Set the build output directory
                           (default: ./llama.cpp/build)
+  -k, --no-pull           Skip git fetch/pull and recompile the existing
+                          source as-is (no update to latest master)
 
 Examples:
   # Build with Vulkan, output to ./llama.cpp/build
@@ -64,6 +68,10 @@ while [[ $# -gt 0 ]]; do
         -o|--output)
             BUILD_DIR="$2"
             shift 2
+            ;;
+        -k|--no-pull)
+            NO_PULL=true
+            shift
             ;;
         hip|vulkan)
             GPU_BACKEND="$1"
@@ -104,28 +112,36 @@ elif [[ "$GPU_BACKEND" == "hip" ]]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Clone Source (if not already present)
+# Clone / Update Source
 # -----------------------------------------------------------------------------
 # Automatically clones llama.cpp into ./llama.cpp if not present,
-# then always updates to latest master before building.
-if [ ! -d "$SOURCE_DIR" ]; then
-	echo "Cloning llama.cpp source into $SOURCE_DIR..."
-	git clone https://github.com/ggerganov/llama.cpp.git
-fi
+# then updates to latest master before building (unless --no-pull is given).
+if [ "$NO_PULL" = true ]; then
+	if [ ! -d "$SOURCE_DIR" ]; then
+		echo "Error: --no-pull given but source not found at $SOURCE_DIR."
+		echo "Run without --no-pull to clone, or point SOURCE_DIR at an existing checkout."
+		exit 1
+	fi
+	cd "$SOURCE_DIR"
+	echo "Skipping git update (--no-pull); building existing source:"
+	git log --oneline -1 2>/dev/null || echo "  (not a git checkout)"
+else
+	if [ ! -d "$SOURCE_DIR" ]; then
+		echo "Cloning llama.cpp source into $SOURCE_DIR..."
+		git clone https://github.com/ggerganov/llama.cpp.git
+	fi
 
-# -----------------------------------------------------------------------------
-# Fetch and Update Source
-# -----------------------------------------------------------------------------
-cd "$SOURCE_DIR"
+	cd "$SOURCE_DIR"
 
-echo "Updating source code..."
-if ! git fetch origin; then
-	echo "Error: Failed to fetch from remote."
-	exit 1
-fi
-if ! git pull --ff-only origin master; then
-	echo "Error: Failed to pull. You likely have local changes or a merge conflict."
-	exit 1
+	echo "Updating source code..."
+	if ! git fetch origin; then
+		echo "Error: Failed to fetch from remote."
+		exit 1
+	fi
+	if ! git pull --ff-only origin master; then
+		echo "Error: Failed to pull. You likely have local changes or a merge conflict."
+		exit 1
+	fi
 fi
 
 # -----------------------------------------------------------------------------
