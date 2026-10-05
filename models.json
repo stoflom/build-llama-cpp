@@ -21,6 +21,25 @@
         "--tools all"
       ]
     },
+   "swift15": {
+      "default": false,
+      "model": "ukisai/Swift-1.5-Qwen3.8-27B-GSQ-RCO-GGUF:IQ3_S",
+      "context": 131072,
+      "comment": "General purpose, dense, faster, various thinking levels",
+      "options": [
+        "-fa on",
+        "-b 1024",
+        "--temp 1.0",
+        "--top-k 20",
+        "--top-p 0.95",
+        "--min_p 0.0",
+        "--presence_penalty 0.0",
+        "--repeat_penalty 1.0",
+        "--spec-type draft-mtp",
+        "--spec-draft-n-max 2",
+        "--tools all"
+      ]
+    },
     "qwen36-35": {
       "default": false,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
