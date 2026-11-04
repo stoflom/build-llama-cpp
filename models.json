@@ -7,9 +7,9 @@
       "comment": "General purpose, dense, slow, various thinking levels",
       "options": [
         "-fa on",
-        "-ctk q4_0",
+        "-ctk q8_0",
         "-ctv q4_0",
-        "-b 1024",
+        "-b 4096",
         "--temp 1.0",
         "--top-k 20",
         "--top-p 0.95",
@@ -28,7 +28,7 @@
       "comment": "General purpose, dense, faster, various thinking levels",
       "options": [
         "-fa on",
-        "-b 1024",
+        "-b 4096",
         "--temp 1.0",
         "--top-k 20",
         "--top-p 0.95",
@@ -47,7 +47,7 @@
       "comment": "General purpose, fast, text and image",
       "options": [
         "-fa on",
-        "-ctk q4_0",
+        "-ctk q8_0",
         "-ctv q4_0",
         "-b 1024",
         "--spec-type draft-mtp",
@@ -62,7 +62,7 @@
       "comment": "General purpose, dense, text and image",
       "options": [
         "-fa on",
-        "-ctk q4_0",
+        "-ctk q8_0",
         "-ctv q4_0",
         "-b 1024",
         "--spec-type draft-mtp",
@@ -76,9 +76,9 @@
       "comment": "General purpose, text and image",
       "options": [
         "-fa on",
-        "-ctk q4_0",
+        "-ctk q8_0",
         "-ctv q4_0",
-        "-b 1024",
+        "-b 4096",
         "--spec-type draft-mtp",
         "--spec-draft-n-max 4",
         "--tools all"
