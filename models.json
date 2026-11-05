@@ -3,7 +3,7 @@
    "qwen38": {
       "default": false,
       "model": "unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_XL",
-      "context": 131072,
+      "context": 163840,
       "comment": "General purpose, dense, slow, various thinking levels",
       "options": [
         "-fa on",
@@ -24,7 +24,7 @@
    "swift15": {
       "default": false,
       "model": "ukisai/Swift-1.5-Qwen3.8-27B-GSQ-RCO-GGUF:IQ3_S",
-      "context": 131072,
+      "context": 163840,
       "comment": "General purpose, dense, faster, various thinking levels",
       "options": [
         "-fa on",
@@ -43,13 +43,13 @@
     "qwen36-35": {
       "default": false,
       "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
-      "context": 131072,
+      "context": 163840,
       "comment": "General purpose, fast, text and image",
       "options": [
         "-fa on",
         "-ctk q8_0",
         "-ctv q4_0",
-        "-b 1024",
+        "-b 4096",
         "--spec-type draft-mtp",
         "--spec-draft-n-max 2",
         "--tools all"
@@ -58,13 +58,13 @@
       "qwen36-27": {
       "default": false,
       "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
-      "context": 131072,
+      "context": 163840,
       "comment": "General purpose, dense, text and image",
       "options": [
         "-fa on",
         "-ctk q8_0",
         "-ctv q4_0",
-        "-b 1024",
+        "-b 4096",
         "--spec-type draft-mtp",
         "--spec-draft-n-max 2",
         "--tools all"
