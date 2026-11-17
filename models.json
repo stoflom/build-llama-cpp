@@ -18,7 +18,8 @@
         "--repeat_penalty 1.0",
         "--spec-type draft-mtp",
         "--spec-draft-n-max 2",
-        "--tools all"
+        "--tools all",
+        "--allow-unauthenticated-tools"
       ]
     },
    "swift15": {
@@ -37,7 +38,8 @@
         "--repeat_penalty 1.0",
         "--spec-type draft-mtp",
         "--spec-draft-n-max 2",
-        "--tools all"
+        "--tools all",
+        "--allow-unauthenticated-tools"
       ]
     },
      "LightOn": {
@@ -57,7 +59,8 @@
       "comment": "Router mode – let agent request any model on demand, options from models.ini",
       "options": [
         "--models-preset ../models.ini",
-        "--models-max 1"
+        "--models-max 1",
+        "--allow-unauthenticated-tools"
       ],
       "default": true
     }
