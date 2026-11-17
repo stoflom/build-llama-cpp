@@ -40,52 +40,7 @@
         "--tools all"
       ]
     },
-    "qwen36-35": {
-      "default": false,
-      "model": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_M",
-      "context": 163840,
-      "comment": "General purpose, fast, text and image",
-      "options": [
-        "-fa on",
-        "-ctk q8_0",
-        "-ctv q4_0",
-        "-b 4096",
-        "--spec-type draft-mtp",
-        "--spec-draft-n-max 2",
-        "--tools all"
-      ]
-    },
-      "qwen36-27": {
-      "default": false,
-      "model": "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL",
-      "context": 163840,
-      "comment": "General purpose, dense, text and image",
-      "options": [
-        "-fa on",
-        "-ctk q8_0",
-        "-ctv q4_0",
-        "-b 4096",
-        "--spec-type draft-mtp",
-        "--spec-draft-n-max 2",
-        "--tools all"
-      ]
-    },
-    "gemma4": {
-      "model": "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q4_K_XL",
-      "context": 131072,
-      "comment": "General purpose, text and image",
-      "options": [
-        "-fa on",
-        "-ctk q8_0",
-        "-ctv q4_0",
-        "-b 4096",
-        "--spec-type draft-mtp",
-        "--spec-draft-n-max 4",
-        "--tools all"
-      ],
-      "default": false
-    },
-    "LightOn": {
+     "LightOn": {
       "model": "staghado/LightOnOCR-2-1B-Q8_0-GGUF",
       "context": 16384,
       "comment": "OCR specialist, text and image",
@@ -94,21 +49,6 @@
         "--temp 0.2",
         "--top-k 0",
         "--top-p 0.9"
-      ],
-      "default": false
-    },
-    "qwen35": {
-      "model": "unsloth/Qwen3.5-4B-MTP-GGUF:UD-Q4_K_XL",
-      "context": 16384,
-      "comment": "Lightweight, text and image",
-      "options": [
-        "-fa on",
-        "--temp 0.7",
-        "--top-k 0",
-        "--top-p 0.9",
-        "--spec-type draft-mtp",
-        "--spec-draft-n-max 2",
-        "--tools all"
       ],
       "default": false
     },
